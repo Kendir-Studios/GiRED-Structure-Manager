@@ -13,8 +13,10 @@
     const UNIT_HEADER_SELECTOR = '[data-testid="unit-card-header"]';
     const UNIT_TITLE_SELECTOR = ".unit-card-title";
     const CONTEXT_CLASS = "gired-structure-mapper-context";
-    const STORAGE_KEY = "giredStructureMapperContextV1";
-    const ROUTE_MAP_KEY = "giredStructureMapperRoutesV1";
+    const STORAGE_KEY = "giredStructureMapperContextV2";
+    const ROUTE_MAP_KEY = "giredStructureMapperRoutesV2";
+    const LEGACY_STORAGE_KEY = "giredStructureMapperContextV1";
+    const LEGACY_ROUTE_MAP_KEY = "giredStructureMapperRoutesV1";
 
     let updateScheduled = false;
     let lastUrl = location.href;
@@ -140,8 +142,8 @@
         });
     }
 
-    /** Lê JSON do armazenamento local sem interromper o GiRED em caso de erro. */
-    function readStorage(key, fallback) {
+    /** Lê JSON do localStorage como fallback de compatibilidade. */
+    function readLocalStorage(key, fallback) {
         try {
             return JSON.parse(localStorage.getItem(key)) ?? fallback;
         } catch (_) {
@@ -149,8 +151,8 @@
         }
     }
 
-    /** Guarda JSON no armazenamento local do browser. */
-    function writeStorage(key, value) {
+    /** Guarda JSON no localStorage como fallback de compatibilidade. */
+    function writeLocalStorage(key, value) {
         try {
             localStorage.setItem(key, JSON.stringify(value));
         } catch (_) {
@@ -158,10 +160,32 @@
         }
     }
 
-    /** Normaliza um destino para permitir reconhecer a mesma AT após navegação. */
+    /** Lê dados do armazenamento da extensão, partilhado entre tabs. */
+    async function readExtensionStorage(key, fallback) {
+        try {
+            if (!chrome?.storage?.local) return fallback;
+            const result = await chrome.storage.local.get(key);
+            return result[key] ?? fallback;
+        } catch (_) {
+            return fallback;
+        }
+    }
+
+    /** Guarda dados no armazenamento da extensão, partilhado entre tabs. */
+    async function writeExtensionStorage(key, value) {
+        try {
+            if (!chrome?.storage?.local) return;
+            await chrome.storage.local.set({ [key]: value });
+        } catch (_) {
+            // O fallback local continua disponível.
+        }
+    }
+
+    /** Normaliza um destino para reconhecer a mesma AT após navegação ou numa nova tab. */
     function normalizeUrl(value) {
         try {
             const url = new URL(value, location.href);
+            url.hash = "";
             return `${url.origin}${url.pathname}${url.search}`;
         } catch (_) {
             return value || "";
@@ -169,17 +193,27 @@
     }
 
     /** Guarda o contexto atual e associa o destino da AT ao respetivo SA/AT. */
-    function saveContext(context, href) {
-        writeStorage(STORAGE_KEY, context);
+    async function saveContext(context, href) {
+        writeLocalStorage(LEGACY_STORAGE_KEY, context);
+        await writeExtensionStorage(STORAGE_KEY, context);
         if (!href) return;
 
-        const routes = readStorage(ROUTE_MAP_KEY, {});
-        routes[normalizeUrl(href)] = context;
-        writeStorage(ROUTE_MAP_KEY, routes);
+        const route = normalizeUrl(href);
+        const localRoutes = readLocalStorage(LEGACY_ROUTE_MAP_KEY, {});
+        localRoutes[route] = context;
+        writeLocalStorage(LEGACY_ROUTE_MAP_KEY, localRoutes);
+
+        const routes = await readExtensionStorage(ROUTE_MAP_KEY, {});
+        routes[route] = context;
+        await writeExtensionStorage(ROUTE_MAP_KEY, routes);
     }
 
-    /** Regista os links existentes na estrutura, preservando o SA e AT de cada destino. */
-    function indexStructureRoutes() {
+    /** Regista os links da estrutura no mapa partilhado entre tabs. */
+    async function indexStructureRoutes() {
+        const routes = await readExtensionStorage(ROUTE_MAP_KEY, {});
+        const localRoutes = readLocalStorage(LEGACY_ROUTE_MAP_KEY, {});
+        let changed = false;
+
         document.querySelectorAll(SUBSECTIONS_SELECTOR).forEach(container => {
             getSubsections(container).forEach((subsection, saIndex) => {
                 const saTitle = normalizeText(subsection.querySelector(SUBSECTION_TITLE_SELECTOR)?.textContent);
@@ -190,35 +224,43 @@
                     const link = title?.closest("a");
                     if (!title || !link?.href) return;
 
-                    const atCode = atIndex === 0 ? "INTROD" : `AT ${formatNumber(atIndex)}`;
                     const context = {
                         saCode,
                         saName: saTitle,
-                        atCode,
+                        atCode: atIndex === 0 ? "INTROD" : `AT ${formatNumber(atIndex)}`,
                         atName: normalizeText(title.textContent)
                     };
-
-                    const routes = readStorage(ROUTE_MAP_KEY, {});
-                    routes[normalizeUrl(link.href)] = context;
-                    writeStorage(ROUTE_MAP_KEY, routes);
+                    const route = normalizeUrl(link.href);
+                    routes[route] = context;
+                    localRoutes[route] = context;
+                    changed = true;
                 });
             });
         });
+
+        if (changed) {
+            writeLocalStorage(LEGACY_ROUTE_MAP_KEY, localRoutes);
+            await writeExtensionStorage(ROUTE_MAP_KEY, routes);
+        }
     }
 
-    /** Obtém o contexto associado à página atual ou, como fallback, ao último clique. */
-    function getCurrentContext() {
-        const routes = readStorage(ROUTE_MAP_KEY, {});
-        return routes[normalizeUrl(location.href)] || readStorage(STORAGE_KEY, null);
+    /** Obtém o contexto associado exatamente à página atual. */
+    async function getCurrentContext() {
+        const currentRoute = normalizeUrl(location.href);
+        const routes = await readExtensionStorage(ROUTE_MAP_KEY, {});
+        if (routes[currentRoute]) return routes[currentRoute];
+
+        const localRoutes = readLocalStorage(LEGACY_ROUTE_MAP_KEY, {});
+        if (localRoutes[currentRoute]) return localRoutes[currentRoute];
+
+        return await readExtensionStorage(STORAGE_KEY, readLocalStorage(LEGACY_STORAGE_KEY, null));
     }
 
     /** Indica se um elemento está realmente visível no ecrã. */
     function isElementVisible(element) {
         if (!(element instanceof Element)) return false;
-
         const style = window.getComputedStyle(element);
         if (style.display === "none" || style.visibility === "hidden") return false;
-
         return element.getClientRects().length > 0;
     }
 
@@ -228,12 +270,10 @@
     }
 
     /** Mostra no topo um breadcrumb discreto com o SA/AT atualmente aberto. */
-    function updateContextIndicator() {
-        const context = getCurrentContext();
+    async function updateContextIndicator() {
+        const context = await getCurrentContext();
         let indicator = document.querySelector(`.${CONTEXT_CLASS}`);
 
-        // O GiRED é uma SPA e pode manter a estrutura antiga escondida no DOM.
-        // Só ocultamos o indicador quando a estrutura está realmente visível.
         if (!context || isStructurePageVisible()) {
             indicator?.remove();
             return;
@@ -247,7 +287,6 @@
         }
 
         indicator.replaceChildren();
-
         const codes = document.createElement("span");
         codes.className = `${CONTEXT_CLASS}__codes`;
         codes.textContent = `${context.saCode} / ${context.atCode}`;
@@ -261,7 +300,7 @@
         }
     }
 
-    /** Guarda imediatamente o contexto quando o utilizador entra numa AT. */
+    /** Guarda imediatamente o contexto quando o utilizador entra numa AT, incluindo nova tab. */
     function captureNavigation(event) {
         const link = event.target instanceof Element ? event.target.closest("a") : null;
         if (!link) return;
@@ -277,7 +316,7 @@
         const atIndex = getUnits(subsection).indexOf(unit);
         if (saIndex < 0 || atIndex < 0) return;
 
-        saveContext({
+        void saveContext({
             saCode: `SA ${formatNumber(saIndex + 1)}`,
             saName: normalizeText(subsection.querySelector(SUBSECTION_TITLE_SELECTOR)?.textContent),
             atCode: atIndex === 0 ? "INTROD" : `AT ${formatNumber(atIndex)}`,
@@ -286,7 +325,7 @@
     }
 
     /** Numera SAs, ATs e os respetivos itens nos menus. */
-    function updateStructureNumbers() {
+    async function updateStructureNumbers() {
         document.querySelectorAll(SUBSECTIONS_SELECTOR).forEach(container => {
             getSubsections(container).forEach((subsection, saIndex) => {
                 applySaBadge(subsection, saIndex);
@@ -296,8 +335,8 @@
 
         const { saMap, atMap } = buildStructureMaps();
         updateNavigationMenus(saMap, atMap);
-        indexStructureRoutes();
-        updateContextIndicator();
+        await indexStructureRoutes();
+        await updateContextIndicator();
     }
 
     /** Agenda uma atualização para o próximo frame. */
@@ -306,7 +345,7 @@
         updateScheduled = true;
         requestAnimationFrame(() => {
             updateScheduled = false;
-            updateStructureNumbers();
+            void updateStructureNumbers();
         });
     }
 
@@ -315,7 +354,7 @@
         const observer = new MutationObserver(mutations => {
             const relevantChange = mutations.some(mutation => {
                 if (mutation.target instanceof Element &&
-                    mutation.target.closest(`.${SA_BADGE_CLASS}, .${AT_BADGE_CLASS}, .${MENU_BADGE_CLASS}`)) {
+                    mutation.target.closest(`.${SA_BADGE_CLASS}, .${AT_BADGE_CLASS}, .${MENU_BADGE_CLASS}, .${CONTEXT_CLASS}`)) {
                     return false;
                 }
                 return mutation.type === "childList";
@@ -328,12 +367,19 @@
 
     /** Inicializa o mapper quando o DOM está disponível. */
     function initialize() {
-        updateStructureNumbers();
+        void updateStructureNumbers();
         startObserver();
         document.addEventListener("click", captureNavigation, true);
         document.addEventListener("click", scheduleUpdate, true);
 
-        // Deteta também navegação interna de aplicações SPA.
+        if (chrome?.storage?.onChanged) {
+            chrome.storage.onChanged.addListener((changes, areaName) => {
+                if (areaName === "local" && (changes[STORAGE_KEY] || changes[ROUTE_MAP_KEY])) {
+                    scheduleUpdate();
+                }
+            });
+        }
+
         window.setInterval(() => {
             if (location.href !== lastUrl) {
                 lastUrl = location.href;
