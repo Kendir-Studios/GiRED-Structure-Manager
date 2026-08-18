@@ -4,6 +4,8 @@
     const SA_BADGE_CLASS = "gired-structure-mapper-sa";
     const AT_BADGE_CLASS = "gired-structure-mapper-at";
     const MENU_BADGE_CLASS = "gired-structure-mapper-menu-badge";
+    const CMS_SA_BADGE_CLASS = "gired-structure-mapper-cms-sa";
+    const CMS_AT_BADGE_CLASS = "gired-structure-mapper-cms-at";
     const SUBSECTIONS_SELECTOR = '[data-testid="section-card__subsections"]';
     const SUBSECTION_SELECTOR = '[data-testid="subsection-card"]';
     const SUBSECTION_HEADER_SELECTOR = '[data-testid="subsection-card-header"]';
@@ -160,7 +162,7 @@
         }
     }
 
-    /** Lê dados do armazenamento da extensão, partilhado entre tabs. */
+    /** Lê dados do armazenamento da extensão, partilhado entre tabs e domínios GiRED. */
     async function readExtensionStorage(key, fallback) {
         try {
             if (!chrome?.storage?.local) return fallback;
@@ -171,7 +173,7 @@
         }
     }
 
-    /** Guarda dados no armazenamento da extensão, partilhado entre tabs. */
+    /** Guarda dados no armazenamento da extensão, partilhado entre tabs e domínios GiRED. */
     async function writeExtensionStorage(key, value) {
         try {
             if (!chrome?.storage?.local) return;
@@ -244,7 +246,7 @@
         }
     }
 
-    /** Obtém o contexto associado exatamente à página atual. */
+    /** Obtém o contexto associado à página atual ou o último contexto capturado. */
     async function getCurrentContext() {
         const currentRoute = normalizeUrl(location.href);
         const routes = await readExtensionStorage(ROUTE_MAP_KEY, {});
@@ -269,11 +271,74 @@
         return Array.from(document.querySelectorAll(SUBSECTIONS_SELECTOR)).some(isElementVisible);
     }
 
-    /** Mostra no topo um breadcrumb discreto com o SA/AT atualmente aberto. */
-    async function updateContextIndicator() {
+    /** Procura um elemento visível cujo texto corresponda ao nome indicado. */
+    function findVisibleTextElement(name, selectors) {
+        const normalizedName = normalizeText(name);
+        if (!normalizedName) return null;
+
+        for (const selector of selectors) {
+            const elements = Array.from(document.querySelectorAll(selector));
+            const exact = elements.find(element =>
+                isElementVisible(element) &&
+                !element.closest(`.${CMS_SA_BADGE_CLASS}, .${CMS_AT_BADGE_CLASS}`) &&
+                normalizeText(element.textContent) === normalizedName
+            );
+            if (exact) return exact;
+        }
+
+        return null;
+    }
+
+    /** Cria uma etiqueta do editor CMS sem duplicar elementos. */
+    function ensureCmsBadge(target, className, text, placement) {
+        if (!target) return;
+        const parent = target.parentElement;
+        if (!parent) return;
+
+        let badge = parent.querySelector(`:scope > .${className}`);
+        if (!badge) {
+            badge = document.createElement("span");
+            badge.className = className;
+            badge.setAttribute("aria-hidden", "true");
+            if (placement === "before") target.before(badge);
+            else target.after(badge);
+        }
+        badge.textContent = text;
+    }
+
+    /** Integra SA e AT diretamente no cabeçalho do editor cms.gired.pt. */
+    async function updateCmsHeader() {
+        if (location.hostname !== "cms.gired.pt") return;
+
         const context = await getCurrentContext();
+        if (!context) return;
+
+        const saTarget = findVisibleTextElement(context.saName, [
+            "main a", "main button", "main span", "main div",
+            ".container a", ".container button", ".container span", ".container div",
+            "body a", "body button", "body span"
+        ]);
+
+        const atTarget = findVisibleTextElement(context.atName, [
+            "main h1", "main h2", "main h3", "main a", "main span", "main div",
+            ".container h1", ".container h2", ".container h3",
+            "body h1", "body h2", "body h3"
+        ]);
+
+        ensureCmsBadge(saTarget, CMS_SA_BADGE_CLASS, context.saCode, "after");
+        ensureCmsBadge(atTarget, CMS_AT_BADGE_CLASS, context.atCode, "before");
+    }
+
+    /** Mostra o indicador flutuante apenas fora do editor CMS. */
+    async function updateContextIndicator() {
         let indicator = document.querySelector(`.${CONTEXT_CLASS}`);
 
+        if (location.hostname === "cms.gired.pt") {
+            indicator?.remove();
+            return;
+        }
+
+        const context = await getCurrentContext();
         if (!context || isStructurePageVisible()) {
             indicator?.remove();
             return;
@@ -324,7 +389,7 @@
         }, link.href);
     }
 
-    /** Numera SAs, ATs e os respetivos itens nos menus. */
+    /** Numera SAs, ATs e atualiza os cabeçalhos dos editores. */
     async function updateStructureNumbers() {
         document.querySelectorAll(SUBSECTIONS_SELECTOR).forEach(container => {
             getSubsections(container).forEach((subsection, saIndex) => {
@@ -336,6 +401,7 @@
         const { saMap, atMap } = buildStructureMaps();
         updateNavigationMenus(saMap, atMap);
         await indexStructureRoutes();
+        await updateCmsHeader();
         await updateContextIndicator();
     }
 
@@ -354,7 +420,7 @@
         const observer = new MutationObserver(mutations => {
             const relevantChange = mutations.some(mutation => {
                 if (mutation.target instanceof Element &&
-                    mutation.target.closest(`.${SA_BADGE_CLASS}, .${AT_BADGE_CLASS}, .${MENU_BADGE_CLASS}, .${CONTEXT_CLASS}`)) {
+                    mutation.target.closest(`.${SA_BADGE_CLASS}, .${AT_BADGE_CLASS}, .${MENU_BADGE_CLASS}, .${CONTEXT_CLASS}, .${CMS_SA_BADGE_CLASS}, .${CMS_AT_BADGE_CLASS}`)) {
                     return false;
                 }
                 return mutation.type === "childList";
