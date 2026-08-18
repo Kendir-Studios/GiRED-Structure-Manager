@@ -2,6 +2,28 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.3.7] - 2026-08-18
+
+### Adicionado
+
+- Popup próprio ao clicar no ícone da extensão
+- Interruptor para ligar/desligar o GiRED Structure Mapper
+- Estado do interruptor guardado em `chrome.storage.local`
+- Atualização imediata das páginas GiRED abertas quando o estado é alterado
+- Indicação da versão atual diretamente no popup
+
+## [1.3.6] - 2026-08-18
+
+### Corrigido
+
+- Numeração dos dropdowns do CMS adaptada à estrutura real `.nav-sub > ul > li.nav-item > a`
+
+## [1.3.5] - 2026-08-18
+
+### Alterado
+
+- Separada a lógica específica dos dropdowns do CMS para `cms-dropdowns.js`
+
 ## [1.3.4] - 2026-08-18
 
 ### Adicionado
