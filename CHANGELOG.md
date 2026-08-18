@@ -2,6 +2,16 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.3.2] - 2026-08-18
+
+### Corrigido
+
+- O contexto SA/AT passa a ser partilhado entre tabs através de `chrome.storage.local`
+- As atividades abertas numa nova tab recuperam automaticamente o respetivo `SA XX / AT XX` ou `SA XX / INTROD`
+- O mapa de rotas das atividades passa a ser partilhado entre todas as tabs da extensão
+- O content script passa a abranger todas as rotas de `apps.gired.pt`, permitindo apresentar o contexto quando a atividade abre fora de `/authoring/course/`
+- `localStorage` é mantido como fallback de compatibilidade
+
 ## [1.3.1] - 2026-08-18
 
 ### Corrigido
