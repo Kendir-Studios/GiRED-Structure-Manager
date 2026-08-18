@@ -1,3 +1,9 @@
+/* Oculta todos os elementos do mapper enquanto o estado é carregado ou quando a extensão está desligada. */
+html.gired-structure-mapper-loading [class*="gired-structure-mapper-"],
+html.gired-structure-mapper-disabled [class*="gired-structure-mapper-"] {
+    display: none !important;
+}
+
 .gired-structure-mapper-sa,
 .gired-structure-mapper-at {
     display: inline-flex;
