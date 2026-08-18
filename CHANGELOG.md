@@ -2,6 +2,14 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.3.4] - 2026-08-18
+
+### Adicionado
+
+- Numeração sequencial de todas as SAs apresentadas no dropdown do editor CMS
+- Numeração sequencial das atividades no dropdown da SA, usando `INTROD` na primeira unidade e `AT 01`, `AT 02`, etc. nas restantes
+- Deteção automática do tipo de dropdown através da SA ou AT atualmente aberta
+
 ## [1.3.3] - 2026-08-18
 
 ### Adicionado
@@ -23,7 +31,7 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 - O contexto SA/AT passa a ser partilhado entre tabs através de `chrome.storage.local`
 - As atividades abertas numa nova tab recuperam automaticamente o respetivo `SA XX / AT XX` ou `SA XX / INTROD`
 - O mapa de rotas das atividades passa a ser partilhado entre todas as tabs da extensão
-- O content script passa a abranger todas as rotas de `apps.gired.pt`, permitindo apresentar o contexto quando a atividade abre fora de `/authoring/course/`
+- O content script passa a abranger todas as rotas de `apps.gired.pt`
 - `localStorage` é mantido como fallback de compatibilidade
 
 ## [1.3.1] - 2026-08-18
