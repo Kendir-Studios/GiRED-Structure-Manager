@@ -15,28 +15,24 @@
         return String(value).padStart(2, "0");
     }
 
-    /** Indica se o elemento está efetivamente visível. */
-    function isVisible(element) {
-        if (!(element instanceof Element)) return false;
-        const style = window.getComputedStyle(element);
-        return style.display !== "none" && style.visibility !== "hidden" && element.getClientRects().length > 0;
-    }
-
-    /** Obtém o texto original do item, ignorando badges já inseridos. */
-    function getItemLabel(item) {
-        const clone = item.cloneNode(true);
+    /** Obtém o texto original do link, ignorando badges já inseridos. */
+    function getLinkLabel(link) {
+        const clone = link.cloneNode(true);
         clone.querySelectorAll(`.${BADGE_CLASS}`).forEach(badge => badge.remove());
         return normalizeText(clone.textContent);
     }
 
-    /** Adiciona ou atualiza o badge de um item do dropdown. */
-    function setBadge(item, code) {
-        let badge = item.querySelector(`:scope > .${BADGE_CLASS}`);
+    /** Adiciona ou atualiza um badge dentro do link do item. */
+    function setBadge(link, code) {
+        const item = link.closest("li.nav-item") || link.parentElement;
+        item?.querySelectorAll(`:scope > .gired-structure-mapper-cms-sa`).forEach(badge => badge.remove());
+
+        let badge = link.querySelector(`:scope > .${BADGE_CLASS}`);
         if (!badge) {
             badge = document.createElement("span");
             badge.className = BADGE_CLASS;
             badge.setAttribute("aria-hidden", "true");
-            item.appendChild(badge);
+            link.appendChild(badge);
         }
 
         badge.textContent = code;
@@ -44,21 +40,31 @@
         badge.classList.toggle("is-introd", code === "INTROD");
     }
 
-    /** Obtém todos os itens clicáveis reais de um dropdown, independentemente da profundidade do HTML. */
-    function getMenuItems(menu) {
-        const candidates = Array.from(menu.querySelectorAll('a, button, [role="menuitem"], [role="option"]'));
-
-        return candidates.filter(item => {
-            if (!isVisible(item)) return false;
-            if (item.closest(`.${BADGE_CLASS}`)) return false;
-            if (!getItemLabel(item)) return false;
-
-            // Evita contar wrappers clicáveis que contêm outros itens clicáveis.
-            return !candidates.some(other => other !== item && item.contains(other) && isVisible(other));
-        });
+    /** Obtém exatamente os links diretos do nav-sub real do CMS. */
+    function getNavSubLinks(navSub) {
+        return Array.from(navSub.querySelectorAll(":scope > ul > li.nav-item > a"));
     }
 
-    /** Numera todos os itens do dropdown de SA ou AT atualmente aberto. */
+    /** Numera um nav-sub de acordo com o item atual nele contido. */
+    function numberNavSub(navSub, context) {
+        const links = getNavSubLinks(navSub);
+        if (links.length < 2) return;
+
+        const labels = links.map(getLinkLabel);
+        const saName = normalizeText(context?.saName);
+        const atName = normalizeText(context?.atName);
+
+        if (saName && labels.includes(saName)) {
+            links.forEach((link, index) => setBadge(link, `SA ${formatNumber(index + 1)}`));
+            return;
+        }
+
+        if (atName && labels.includes(atName)) {
+            links.forEach((link, index) => setBadge(link, index === 0 ? "INTROD" : `AT ${formatNumber(index)}`));
+        }
+    }
+
+    /** Numera todos os nav-sub existentes no CMS. */
     async function updateDropdowns() {
         if (location.hostname !== "cms.gired.pt") return;
 
@@ -71,28 +77,7 @@
         }
 
         if (!context) return;
-
-        const saName = normalizeText(context.saName);
-        const atName = normalizeText(context.atName);
-        const menus = Array.from(document.querySelectorAll('.dropdown-menu, [role="menu"], [role="listbox"]')).filter(isVisible);
-
-        menus.forEach(menu => {
-            const items = getMenuItems(menu);
-            if (items.length < 2) return;
-
-            const labels = items.map(getItemLabel);
-            const isSaMenu = saName && labels.includes(saName);
-            const isAtMenu = atName && labels.includes(atName);
-
-            if (isSaMenu) {
-                items.forEach((item, index) => setBadge(item, `SA ${formatNumber(index + 1)}`));
-                return;
-            }
-
-            if (isAtMenu) {
-                items.forEach((item, index) => setBadge(item, index === 0 ? "INTROD" : `AT ${formatNumber(index)}`));
-            }
-        });
+        document.querySelectorAll("div.nav-sub").forEach(navSub => numberNavSub(navSub, context));
     }
 
     /** Agrupa alterações rápidas do DOM numa única atualização. */
