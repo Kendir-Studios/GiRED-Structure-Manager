@@ -2,6 +2,20 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.3.3] - 2026-08-18
+
+### Adicionado
+
+- Suporte ao editor de atividades em `cms.gired.pt`
+- Etiqueta `SA XX` integrada junto ao nome da SA no cabeçalho do editor
+- Etiqueta `AT XX` ou `INTROD` integrada antes do título da atividade
+- Partilha do contexto guardado em `chrome.storage.local` entre `apps.gired.pt` e `cms.gired.pt`
+
+### Alterado
+
+- O indicador flutuante anterior deixa de ser apresentado no CMS quando os indicadores integrados são usados
+- O content script passa a ser executado tanto em `apps.gired.pt` como em `cms.gired.pt`
+
 ## [1.3.2] - 2026-08-18
 
 ### Corrigido
