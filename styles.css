@@ -1,0 +1,96 @@
+.gired-structure-mapper-sa,
+.gired-structure-mapper-at {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    margin-right: 8px;
+    padding: 3px 7px;
+    border: 1px solid rgba(0, 104, 141, 0.24);
+    border-radius: 4px;
+    background: rgba(0, 104, 141, 0.07);
+    color: #00688d;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.25;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* As ATs ficam ainda mais discretas para preservar a hierarquia visual. */
+.gired-structure-mapper-at {
+    border-color: rgba(0, 0, 0, 0.12);
+    background: rgba(0, 0, 0, 0.035);
+    color: #56616a;
+    font-weight: 500;
+}
+
+/* Mantém códigos e títulos alinhados nos controlos existentes do GiRED. */
+[data-testid="subsection-card-header__expanded-btn"],
+[data-testid="unit-card-header__title-link"] {
+    align-items: center;
+}
+
+/* Códigos discretos nos dropdowns e menus de navegação. */
+.gired-structure-mapper-menu-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    margin-right: 7px;
+    padding: 2px 5px;
+    border: 1px solid rgba(0, 104, 141, 0.18);
+    border-radius: 3px;
+    background: rgba(0, 104, 141, 0.055);
+    color: #00688d;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.2;
+    white-space: nowrap;
+    pointer-events: none;
+    user-select: none;
+}
+
+.gired-structure-mapper-menu-badge.is-at {
+    border-color: rgba(0, 0, 0, 0.10);
+    background: rgba(0, 0, 0, 0.025);
+    color: #65717a;
+    font-weight: 500;
+}
+
+/* Breadcrumb persistente quando o utilizador entra numa AT. */
+.gired-structure-mapper-context {
+    position: fixed;
+    top: 10px;
+    right: 16px;
+    z-index: 2147483000;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    max-width: min(460px, calc(100vw - 32px));
+    padding: 5px 8px;
+    border: 1px solid rgba(0, 104, 141, 0.16);
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.08);
+    color: #56616a;
+    font-size: 11px;
+    line-height: 1.25;
+    pointer-events: none;
+    user-select: none;
+}
+
+.gired-structure-mapper-context__codes {
+    flex: 0 0 auto;
+    color: #00688d;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.gired-structure-mapper-context__name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
