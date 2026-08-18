@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GiRED Structure Mapper",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Adiciona numeração SA/AT ao GiRED e mantém o contexto da atividade durante a navegação e entre tabs.",
   "permissions": [
     "storage"
@@ -9,7 +9,8 @@
   "content_scripts": [
     {
       "matches": [
-        "https://apps.gired.pt/*"
+        "https://apps.gired.pt/*",
+        "https://cms.gired.pt/*"
       ],
       "js": [
         "content.js"
