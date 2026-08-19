@@ -8,17 +8,30 @@
 </head>
 <body>
     <main class="popup">
-        <div class="header">
-            <div>
-                <h1>GiRED Structure Mapper</h1>
-                <p>Mapeamento SA / AT</p>
-            </div>
-            <span id="version" class="version"></span>
-        </div>
+        <header class="header">
+            <div class="brand">
+                <div class="brand-icon" aria-hidden="true">
+                    <span>SA</span>
+                    <span>AT</span>
+                </div>
 
-        <div class="setting-row">
+                <div class="brand-copy">
+                    <div class="title-row">
+                        <h1>GiRED Structure Mapper</h1>
+                        <span id="version" class="version"></span>
+                    </div>
+                    <p>Mapeamento automático da estrutura</p>
+                </div>
+            </div>
+        </header>
+
+        <section class="card status-card" aria-label="Estado da extensão">
             <div class="setting-copy">
-                <strong>Extensão</strong>
+                <div class="eyebrow">Estado</div>
+                <div class="status-line">
+                    <span class="status-indicator" aria-hidden="true"></span>
+                    <strong>Extensão</strong>
+                </div>
                 <span id="statusText">Ativa</span>
             </div>
 
@@ -26,32 +39,44 @@
                 <input id="enabledToggle" type="checkbox">
                 <span class="slider"></span>
             </label>
-        </div>
+        </section>
 
-        <p class="hint">A alteração é aplicada imediatamente às páginas GiRED abertas.</p>
+        <p class="hint">As alterações são aplicadas imediatamente às páginas GiRED abertas.</p>
 
         <section class="updates" aria-labelledby="updatesTitle">
-            <div class="updates-header">
-                <div class="updates-copy">
-                    <strong id="updatesTitle">Atualizações</strong>
-                    <span id="updateStatus">A verificar...</span>
-                </div>
-                <span id="latestVersion" class="latest-version" hidden></span>
+            <div class="section-heading">
+                <span>Atualizações</span>
             </div>
 
-            <button id="updateButton" class="update-button" type="button" disabled>
-                Verificar atualizações
-            </button>
+            <div class="card updates-card">
+                <div class="updates-header">
+                    <div class="updates-copy">
+                        <strong id="updatesTitle">Versão da extensão</strong>
+                        <span id="updateStatus">A verificar...</span>
+                    </div>
+                    <span id="latestVersion" class="latest-version" hidden></span>
+                </div>
 
-            <div id="updaterSetup" class="updater-setup" hidden>
-                <p>O updater local ainda não está configurado neste computador.</p>
-                <p class="setup-hint">
-                    Windows: executa <strong>INSTALL-WINDOWS.bat</strong><br>
-                    macOS: executa <strong>INSTALL-MAC.command</strong>
-                </p>
-                <p class="setup-hint">Só é necessário fazer isto uma vez.</p>
+                <button id="updateButton" class="update-button" type="button" disabled>
+                    Verificar atualizações
+                </button>
+
+                <div id="updaterSetup" class="updater-setup" hidden>
+                    <p>O updater local ainda não está configurado neste computador.</p>
+                    <p class="setup-hint">
+                        Windows: executa <strong>INSTALL-WINDOWS.bat</strong><br>
+                        macOS: executa <strong>INSTALL-MAC.command</strong>
+                    </p>
+                    <p class="setup-hint">Só é necessário fazer isto uma vez.</p>
+                </div>
             </div>
         </section>
+
+        <footer class="footer">
+            <span>Kendir Studios</span>
+            <span class="footer-dot">•</span>
+            <span>Internal Tool</span>
+        </footer>
     </main>
 
     <script src="popup.js"></script>
