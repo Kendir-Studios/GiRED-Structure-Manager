@@ -39,10 +39,12 @@ Write-Host "ID fixo da extensão: $extensionId"
 Write-Host "Chrome e Edge foram configurados para o utilizador atual."
 
 function Open-ExtensionsPage {
+    $programFilesX86 = ${env:ProgramFiles(x86)}
+
     $chromePaths = @(
-        "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
-        "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe",
-        "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+        (Join-Path $env:ProgramFiles "Google\Chrome\Application\chrome.exe"),
+        $(if ($programFilesX86) { Join-Path $programFilesX86 "Google\Chrome\Application\chrome.exe" }),
+        (Join-Path $env:LOCALAPPDATA "Google\Chrome\Application\chrome.exe")
     )
 
     foreach ($path in $chromePaths) {
@@ -53,9 +55,9 @@ function Open-ExtensionsPage {
     }
 
     $edgePaths = @(
-        "$env:ProgramFiles(x86)\Microsoft\Edge\Application\msedge.exe",
-        "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
-        "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe"
+        $(if ($programFilesX86) { Join-Path $programFilesX86 "Microsoft\Edge\Application\msedge.exe" }),
+        (Join-Path $env:ProgramFiles "Microsoft\Edge\Application\msedge.exe"),
+        (Join-Path $env:LOCALAPPDATA "Microsoft\Edge\Application\msedge.exe")
     )
 
     foreach ($path in $edgePaths) {
