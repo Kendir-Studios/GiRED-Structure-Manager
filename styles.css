@@ -166,3 +166,37 @@ html.gired-review-sidebar-left body.vc-review-open {
 html.gired-review-sidebar-left #vc-review-container {
     direction: ltr;
 }
+
+/*
+ * Modo opcional "Só lista de correções".
+ * Mantém o cabeçalho/fechar e a lista de comentários, escondendo o formulário e as tabs.
+ */
+html.gired-review-comments-only #vc-review-sidebar .vc-review-tabs,
+html.gired-review-comments-only #vc-review-sidebar .vc-review-unit-info,
+html.gired-review-comments-only #vc-review-sidebar #vc-review-state-banner,
+html.gired-review-comments-only #vc-review-sidebar #vc-review-form,
+html.gired-review-comments-only #vc-review-sidebar #vc-review-tab-workflow {
+    display: none !important;
+}
+
+html.gired-review-comments-only #vc-review-sidebar #vc-review-tab-corrections {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+}
+
+html.gired-review-comments-only #vc-review-sidebar .vc-review-content {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+html.gired-review-comments-only #vc-review-sidebar .vc-review-comments-list {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+}
