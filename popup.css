@@ -253,6 +253,10 @@ input {
     box-shadow: none;
 }
 
+.preference-card + .preference-card {
+    margin-top: 8px;
+}
+
 .updates-card {
     padding: 13px;
 }
