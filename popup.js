@@ -3,12 +3,15 @@
 
     const ENABLED_KEY = "giredStructureMapperEnabled";
     const REVIEW_LEFT_KEY = "giredReviewSidebarLeft";
+    const REVIEW_COMMENTS_ONLY_KEY = "giredReviewCommentsOnly";
     const NATIVE_HOST = "pt.kendir.gired_updater";
 
     const toggle = document.getElementById("enabledToggle");
     const statusText = document.getElementById("statusText");
     const reviewSideToggle = document.getElementById("reviewSideToggle");
     const reviewSideStatus = document.getElementById("reviewSideStatus");
+    const reviewCommentsToggle = document.getElementById("reviewCommentsToggle");
+    const reviewCommentsStatus = document.getElementById("reviewCommentsStatus");
     const version = document.getElementById("version");
     const updateStatus = document.getElementById("updateStatus");
     const latestVersion = document.getElementById("latestVersion");
@@ -27,6 +30,12 @@
     function updateReviewSideUi(useLeftSide) {
         reviewSideToggle.checked = useLeftSide;
         reviewSideStatus.textContent = useLeftSide ? "Esquerda" : "Direita";
+    }
+
+    /** Atualiza a preferência que mostra apenas a lista de correções. */
+    function updateReviewCommentsUi(commentsOnly) {
+        reviewCommentsToggle.checked = commentsOnly;
+        reviewCommentsStatus.textContent = commentsOnly ? "Apenas comentários" : "Painel completo";
     }
 
     /** Envia uma mensagem ao helper nativo responsável pelas atualizações. */
@@ -130,12 +139,19 @@
         version.textContent = `v${chrome.runtime.getManifest().version}`;
 
         try {
-            const result = await chrome.storage.local.get([ENABLED_KEY, REVIEW_LEFT_KEY]);
+            const result = await chrome.storage.local.get([
+                ENABLED_KEY,
+                REVIEW_LEFT_KEY,
+                REVIEW_COMMENTS_ONLY_KEY
+            ]);
+
             updateUi(result[ENABLED_KEY] !== false);
             updateReviewSideUi(result[REVIEW_LEFT_KEY] !== false);
+            updateReviewCommentsUi(result[REVIEW_COMMENTS_ONLY_KEY] === true);
         } catch (_) {
             updateUi(true);
             updateReviewSideUi(true);
+            updateReviewCommentsUi(false);
         }
 
         await checkUpdates();
@@ -153,6 +169,13 @@
         const useLeftSide = reviewSideToggle.checked;
         updateReviewSideUi(useLeftSide);
         await chrome.storage.local.set({ [REVIEW_LEFT_KEY]: useLeftSide });
+    });
+
+    /** Guarda a preferência do modo que mostra apenas a lista de correções. */
+    reviewCommentsToggle.addEventListener("change", async () => {
+        const commentsOnly = reviewCommentsToggle.checked;
+        updateReviewCommentsUi(commentsOnly);
+        await chrome.storage.local.set({ [REVIEW_COMMENTS_ONLY_KEY]: commentsOnly });
     });
 
     /** Verifica ou instala a atualização conforme o estado atual do botão. */
