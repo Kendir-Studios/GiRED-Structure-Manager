@@ -2,6 +2,22 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.4.2] - 2026-08-19
+
+### Adicionado
+
+- Novo branding visual para o popup da extensão
+- Novo ícone da barra do browser, gerado em memória pelo service worker
+- Ficheiro vetorial `icons/icon-source.svg` como fonte do ícone
+- Identificação visual "Kendir Studios" no rodapé do popup
+
+### Alterado
+
+- Interface do popup totalmente renovada com tema escuro e destaque teal
+- Melhor organização visual do estado da extensão e das atualizações
+- Melhor contraste, tipografia, espaçamentos e estados de interação
+- Descrição da extensão atualizada no `manifest.json`
+
 ## [1.4.1] - 2026-08-19
 
 ### Adicionado
