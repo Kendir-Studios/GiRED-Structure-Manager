@@ -29,6 +29,29 @@
         </div>
 
         <p class="hint">A alteração é aplicada imediatamente às páginas GiRED abertas.</p>
+
+        <section class="updates" aria-labelledby="updatesTitle">
+            <div class="updates-header">
+                <div class="updates-copy">
+                    <strong id="updatesTitle">Atualizações</strong>
+                    <span id="updateStatus">A verificar...</span>
+                </div>
+                <span id="latestVersion" class="latest-version" hidden></span>
+            </div>
+
+            <button id="updateButton" class="update-button" type="button" disabled>
+                Verificar atualizações
+            </button>
+
+            <div id="updaterSetup" class="updater-setup" hidden>
+                <p>O updater local ainda não está configurado neste computador.</p>
+                <div class="extension-id-row">
+                    <code id="extensionId"></code>
+                    <button id="copyIdButton" class="copy-button" type="button">Copiar ID</button>
+                </div>
+                <p class="setup-hint">Executa o instalador da pasta <strong>updater</strong> uma vez e volta a abrir este painel.</p>
+            </div>
+        </section>
     </main>
 
     <script src="popup.js"></script>
