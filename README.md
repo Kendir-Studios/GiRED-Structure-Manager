@@ -13,7 +13,8 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Suporta `apps.gired.pt` e `cms.gired.pt`
 - Pode ser ligada/desligada diretamente no popup
 - Permite escolher se o painel nativo de Revisão do GiRED aparece à esquerda ou à direita
-- A preferência do lado da Revisão fica guardada e é aplicada imediatamente às páginas abertas
+- Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
+- As preferências da Revisão ficam guardadas e são aplicadas imediatamente às páginas abertas
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
 - Popup compacto com interface visual própria para o mapper
@@ -69,6 +70,14 @@ A partir da v1.5.0, o popup inclui a opção `Revisão do lado esquerdo`.
 
 Por omissão, numa instalação nova, o painel é apresentado à esquerda.
 
+A partir da v1.6.0 existe também a opção `Só lista de correções`.
+
+- Ativa: mantém o cabeçalho do painel e mostra apenas a lista de comentários/correções existentes
+- O formulário de nova correção, a informação da unidade e as tabs ficam ocultos
+- A aba de Correções é automaticamente mantida ativa
+- Desativada: o painel volta ao modo completo do GiRED
+- Esta opção vem desativada por omissão
+
 ## Atualizações
 
 Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano e no arranque do browser.
@@ -88,18 +97,18 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-A v1.5.0 adiciona uma área de preferências ao popup, mantendo a estrutura visual introduzida na v1.4.4.
+A v1.6.0 acrescenta uma segunda preferência para simplificar o painel de Revisão quando o utilizador só quer consultar as correções existentes.
 
 ## Versão atual
 
-`1.5.0`
+`1.6.0`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.5.0` -> `1.5.1`): correções e melhorias pequenas
-- `MINOR` (`1.5.x` -> `1.6.0`): novas funcionalidades compatíveis
+- `PATCH` (`1.6.0` -> `1.6.1`): correções e melhorias pequenas
+- `MINOR` (`1.6.x` -> `1.7.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
 ## Uso
