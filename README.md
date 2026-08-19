@@ -14,8 +14,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Pode ser ligada/desligada diretamente no popup
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
-- Popup com interface renovada e branding visual próprio
-- Ícone da barra do browser aplicado dinamicamente pelo service worker
+- Popup compacto com interface visual própria para o mapper
 
 ## Instalação
 
@@ -74,19 +73,19 @@ Não é necessário copiar IDs nem voltar a configurar o updater.
 
 Como fallback, continua a ser possível atualizar manualmente através do GitHub Desktop e depois carregar em "Recarregar" em `chrome://extensions/` / `edge://extensions/`.
 
-## Branding
+## Interface
 
-O popup usa um símbolo próprio baseado em camadas de conteúdo e na paleta visual teal do projeto. A fonte vetorial está em `icons/icon-source.svg` e o ícone da barra do browser é desenhado em memória pelo `background.js`.
+A v1.4.4 usa um popup redesenhado apenas em HTML/CSS, preservando a lógica estável do `popup.js` e do `background.js`. O objetivo é permitir evolução visual sem voltar a interferir com o funcionamento da extensão.
 
 ## Versão atual
 
-`1.4.2`
+`1.4.4`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.4.1` -> `1.4.2`): correções e melhorias pequenas
+- `PATCH` (`1.4.3` -> `1.4.4`): correções e melhorias pequenas
 - `MINOR` (`1.4.x` -> `1.5.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
