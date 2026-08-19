@@ -15,11 +15,15 @@ if ($ExtensionId -notmatch '^[a-p]{32}$') {
     exit 1
 }
 
-$manifestPath = Join-Path $PSScriptRoot "$hostName.json"
+$launcherPath = Join-Path $PSScriptRoot "kendir-gired-updater.bat"
+$configDirectory = Join-Path $env:LOCALAPPDATA "Kendir\GiREDStructureMapper"
+New-Item -ItemType Directory -Path $configDirectory -Force | Out-Null
+
+$manifestPath = Join-Path $configDirectory "$hostName.json"
 $hostManifest = [ordered]@{
     name = $hostName
     description = "Kendir GiRED Structure Manager Updater"
-    path = "kendir-gired-updater.bat"
+    path = $launcherPath
     type = "stdio"
     allowed_origins = @("chrome-extension://$ExtensionId/")
 }
