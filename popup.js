@@ -2,10 +2,13 @@
     "use strict";
 
     const ENABLED_KEY = "giredStructureMapperEnabled";
+    const REVIEW_LEFT_KEY = "giredReviewSidebarLeft";
     const NATIVE_HOST = "pt.kendir.gired_updater";
 
     const toggle = document.getElementById("enabledToggle");
     const statusText = document.getElementById("statusText");
+    const reviewSideToggle = document.getElementById("reviewSideToggle");
+    const reviewSideStatus = document.getElementById("reviewSideStatus");
     const version = document.getElementById("version");
     const updateStatus = document.getElementById("updateStatus");
     const latestVersion = document.getElementById("latestVersion");
@@ -18,6 +21,12 @@
     function updateUi(enabled) {
         toggle.checked = enabled;
         statusText.textContent = enabled ? "Ativa" : "Desativada";
+    }
+
+    /** Atualiza a preferência visual do lado do painel de Revisão. */
+    function updateReviewSideUi(useLeftSide) {
+        reviewSideToggle.checked = useLeftSide;
+        reviewSideStatus.textContent = useLeftSide ? "Esquerda" : "Direita";
     }
 
     /** Envia uma mensagem ao helper nativo responsável pelas atualizações. */
@@ -116,15 +125,17 @@
         }
     }
 
-    /** Carrega o estado atual, a versão e verifica atualizações. */
+    /** Carrega o estado atual, as preferências, a versão e verifica atualizações. */
     async function initialize() {
         version.textContent = `v${chrome.runtime.getManifest().version}`;
 
         try {
-            const result = await chrome.storage.local.get(ENABLED_KEY);
+            const result = await chrome.storage.local.get([ENABLED_KEY, REVIEW_LEFT_KEY]);
             updateUi(result[ENABLED_KEY] !== false);
+            updateReviewSideUi(result[REVIEW_LEFT_KEY] !== false);
         } catch (_) {
             updateUi(true);
+            updateReviewSideUi(true);
         }
 
         await checkUpdates();
@@ -135,6 +146,13 @@
         const enabled = toggle.checked;
         updateUi(enabled);
         await chrome.storage.local.set({ [ENABLED_KEY]: enabled });
+    });
+
+    /** Guarda a preferência do lado do painel de Revisão. */
+    reviewSideToggle.addEventListener("change", async () => {
+        const useLeftSide = reviewSideToggle.checked;
+        updateReviewSideUi(useLeftSide);
+        await chrome.storage.local.set({ [REVIEW_LEFT_KEY]: useLeftSide });
     });
 
     /** Verifica ou instala a atualização conforme o estado atual do botão. */
