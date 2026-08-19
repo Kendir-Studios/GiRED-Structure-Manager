@@ -2,6 +2,21 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.6.1] - 2026-08-19
+
+### Corrigido
+
+- O modo `Só lista de correções` passa a funcionar corretamente quando o painel de Revisão começa fechado
+- A extensão deteta a abertura através do botão nativo `Revisão` do GiRED e aplica as preferências nesse momento
+- A classe `vc-review-open` do `body` passa a ser observada para acompanhar abertura e fecho do painel sem depender de alterações estruturais no DOM
+- A aba `Correções` é novamente ativada quando necessário após abrir o painel
+- O cálculo da largura do painel esquerdo é atualizado apenas quando a Revisão está efetivamente aberta
+
+### Alterado
+
+- O botão nativo que abre a Revisão permanece no lado direito, mesmo quando o painel está configurado para abrir à esquerda
+- As preferências de lado e de modo compacto já não abrem o painel automaticamente; apenas alteram a forma como este aparece quando o utilizador o abre
+
 ## [1.6.0] - 2026-08-19
 
 ### Adicionado
