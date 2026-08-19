@@ -81,6 +81,8 @@ A partir da v1.6.0 existe também a opção `Só lista de correções`.
 
 A v1.6.1 melhora a deteção do estado aberto/fechado do painel. A extensão observa a classe `vc-review-open` aplicada pelo próprio GiRED e reaplica as preferências sempre que o botão nativo abre a Revisão, sem forçar o painel a ficar permanentemente visível.
 
+A v1.6.2 corrige o fecho através do botão `X`: os estilos que movem o painel para a esquerda só são aplicados enquanto a Revisão está efetivamente aberta. Quando o GiRED remove `vc-review-open`, o painel volta aos estilos nativos de fecho e sai corretamente do viewport.
+
 ## Atualizações
 
 Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano e no arranque do browser.
@@ -100,17 +102,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-A v1.6.1 mantém as preferências introduzidas na v1.6.0, mas passa a respeitar explicitamente o ciclo nativo abrir/fechar do painel de Revisão.
+A v1.6.2 mantém as preferências introduzidas nas versões anteriores e corrige o ciclo completo de abrir/fechar o painel quando este está do lado esquerdo.
 
 ## Versão atual
 
-`1.6.1`
+`1.6.2`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.6.0` -> `1.6.1`): correções e melhorias pequenas
+- `PATCH` (`1.6.1` -> `1.6.2`): correções e melhorias pequenas
 - `MINOR` (`1.6.x` -> `1.7.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
