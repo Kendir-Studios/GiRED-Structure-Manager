@@ -12,6 +12,8 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o contexto ao entrar numa unidade
 - Suporta `apps.gired.pt` e `cms.gired.pt`
 - Pode ser ligada/desligada diretamente no popup
+- Permite escolher se o painel nativo de Revisão do GiRED aparece à esquerda ou à direita
+- A preferência do lado da Revisão fica guardada e é aplicada imediatamente às páginas abertas
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
 - Popup compacto com interface visual própria para o mapper
@@ -56,6 +58,17 @@ Na página de extensões:
 
 O ID da extensão é fixo entre computadores: `mackaaceiagpmapjgllmecpodnnhpcdm`.
 
+## Painel de Revisão
+
+A partir da v1.5.0, o popup inclui a opção `Revisão do lado esquerdo`.
+
+- Ativa: o painel nativo de Revisão do GiRED fica do lado esquerdo
+- Desativada: mantém o comportamento original do GiRED, com o painel do lado direito
+- A preferência fica guardada em `chrome.storage.local`
+- A alteração é aplicada imediatamente sem ser necessário recarregar a página
+
+Por omissão, numa instalação nova, o painel é apresentado à esquerda.
+
 ## Atualizações
 
 Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano e no arranque do browser.
@@ -75,18 +88,18 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-A v1.4.4 usa um popup redesenhado apenas em HTML/CSS, preservando a lógica estável do `popup.js` e do `background.js`. O objetivo é permitir evolução visual sem voltar a interferir com o funcionamento da extensão.
+A v1.5.0 adiciona uma área de preferências ao popup, mantendo a estrutura visual introduzida na v1.4.4.
 
 ## Versão atual
 
-`1.4.4`
+`1.5.0`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.4.3` -> `1.4.4`): correções e melhorias pequenas
-- `MINOR` (`1.4.x` -> `1.5.0`): novas funcionalidades compatíveis
+- `PATCH` (`1.5.0` -> `1.5.1`): correções e melhorias pequenas
+- `MINOR` (`1.5.x` -> `1.6.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
 ## Uso
