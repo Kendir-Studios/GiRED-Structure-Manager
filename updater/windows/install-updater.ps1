@@ -1,22 +1,11 @@
-param(
-    [string]$ExtensionId = ""
-)
-
 $ErrorActionPreference = "Stop"
+
 $hostName = "pt.kendir.gired_updater"
-
-if (-not $ExtensionId) {
-    $ExtensionId = Read-Host "Cole o ID da extensão apresentado em chrome://extensions ou edge://extensions"
-}
-
-$ExtensionId = $ExtensionId.Trim()
-if ($ExtensionId -notmatch '^[a-p]{32}$') {
-    Write-Host "ID inválido. O ID deve ter 32 caracteres entre a e p." -ForegroundColor Red
-    exit 1
-}
-
+$extensionId = "mackaaceiagpmapjgllmecpodnnhpcdm"
+$repoRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\.."))
 $launcherPath = Join-Path $PSScriptRoot "kendir-gired-updater.bat"
 $configDirectory = Join-Path $env:LOCALAPPDATA "Kendir\GiREDStructureMapper"
+
 New-Item -ItemType Directory -Path $configDirectory -Force | Out-Null
 
 $manifestPath = Join-Path $configDirectory "$hostName.json"
@@ -25,7 +14,7 @@ $hostManifest = [ordered]@{
     description = "Kendir GiRED Structure Manager Updater"
     path = $launcherPath
     type = "stdio"
-    allowed_origins = @("chrome-extension://$ExtensionId/")
+    allowed_origins = @("chrome-extension://$extensionId/")
 }
 
 $json = $hostManifest | ConvertTo-Json -Depth 4
@@ -45,7 +34,45 @@ foreach ($registryPath in $registryPaths) {
     Set-Item -Path $registryPath -Value $manifestPath
 }
 
-Write-Host "Updater instalado com sucesso." -ForegroundColor Green
-Write-Host "Extensão autorizada: $ExtensionId"
+Write-Host "Updater configurado com sucesso." -ForegroundColor Green
+Write-Host "ID fixo da extensão: $extensionId"
 Write-Host "Chrome e Edge foram configurados para o utilizador atual."
-Write-Host "Fecha e volta a abrir o popup da extensão para testar."
+
+function Open-ExtensionsPage {
+    $chromePaths = @(
+        "$env:ProgramFiles\Google\Chrome\Application\chrome.exe",
+        "$env:ProgramFiles(x86)\Google\Chrome\Application\chrome.exe",
+        "$env:LOCALAPPDATA\Google\Chrome\Application\chrome.exe"
+    )
+
+    foreach ($path in $chromePaths) {
+        if ($path -and (Test-Path $path)) {
+            Start-Process -FilePath $path -ArgumentList "chrome://extensions/"
+            return
+        }
+    }
+
+    $edgePaths = @(
+        "$env:ProgramFiles(x86)\Microsoft\Edge\Application\msedge.exe",
+        "$env:ProgramFiles\Microsoft\Edge\Application\msedge.exe",
+        "$env:LOCALAPPDATA\Microsoft\Edge\Application\msedge.exe"
+    )
+
+    foreach ($path in $edgePaths) {
+        if ($path -and (Test-Path $path)) {
+            Start-Process -FilePath $path -ArgumentList "edge://extensions/"
+            return
+        }
+    }
+}
+
+try {
+    Start-Process explorer.exe -ArgumentList $repoRoot
+    Open-ExtensionsPage
+} catch {
+    # A configuração do updater já ficou concluída mesmo que não seja possível abrir as janelas.
+}
+
+Write-Host ""
+Write-Host "Último passo: ativa o Modo de programador e usa 'Carregar sem compactação' nesta pasta:" -ForegroundColor Cyan
+Write-Host $repoRoot
