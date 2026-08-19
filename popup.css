@@ -130,7 +130,8 @@ input {
     box-shadow: var(--shadow);
 }
 
-.status-card {
+.status-card,
+.preference-card {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -239,12 +240,17 @@ input {
     outline-offset: 2px;
 }
 
+.preferences,
 .updates {
     margin-top: 16px;
 }
 
 .section-heading {
     margin: 0 0 7px 2px;
+}
+
+.preference-card {
+    box-shadow: none;
 }
 
 .updates-card {
