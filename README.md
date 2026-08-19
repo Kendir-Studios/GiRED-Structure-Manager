@@ -12,8 +12,8 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o contexto ao entrar numa unidade
 - Suporta `apps.gired.pt` e `cms.gired.pt`
 - Pode ser ligada/desligada diretamente no popup
-- Verifica novas versões automaticamente ao abrir o popup
-- Permite atualizar o clone local com um único botão através de um helper nativo
+- Verifica e instala novas versões automaticamente em segundo plano
+- Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
 
 ## Instalação
 
@@ -57,14 +57,16 @@ O ID da extensão é fixo entre computadores: `mackaaceiagpmapjgllmecpodnnhpcdm`
 
 ## Atualizações
 
-Depois da configuração inicial, o popup consegue verificar e instalar novas versões diretamente do repositório privado.
+Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano e no arranque do browser.
 
-Quando existe uma atualização:
+Quando existe uma atualização e o clone está limpo:
 
-1. Abrir o popup da extensão
-2. Carregar em `Atualizar agora`
-3. O updater faz `git pull --ff-only origin main`
+1. O helper faz `git fetch origin main`
+2. Deteta que `origin/main` está à frente
+3. Executa `git pull --ff-only origin main`
 4. A extensão recarrega automaticamente
+
+O popup continua a permitir verificar e instalar uma atualização manualmente através do botão `Atualizar agora`.
 
 Não é necessário copiar IDs nem voltar a configurar o updater.
 
