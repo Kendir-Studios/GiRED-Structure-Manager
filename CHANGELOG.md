@@ -2,6 +2,14 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.4.3] - 2026-08-19
+
+### Corrigido
+
+- Restaurada a interface estável do popup após a regressão introduzida na v1.4.2
+- Restaurado o service worker de background estável, removendo a geração dinâmica do ícone que podia interferir com o funcionamento da extensão
+- Mantidas todas as funcionalidades de mapeamento SA/AT, updater, toggle e contexto entre tabs
+
 ## [1.4.2] - 2026-08-19
 
 ### Adicionado
