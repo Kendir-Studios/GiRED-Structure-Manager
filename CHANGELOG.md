@@ -2,6 +2,15 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.6.2] - 2026-08-19
+
+### Corrigido
+
+- Corrigido o botão `X` do painel de Revisão quando este está configurado para abrir do lado esquerdo
+- Os estilos que reposicionam `#vc-review-sidebar` passam a ser aplicados apenas enquanto o `body` tem a classe nativa `vc-review-open`
+- Ao fechar a Revisão, o GiRED volta a controlar integralmente o estado fechado e o painel sai corretamente do viewport
+- O modo `Só lista de correções` também passa a aplicar os seus overrides apenas enquanto o painel está aberto
+
 ## [1.6.1] - 2026-08-19
 
 ### Corrigido
