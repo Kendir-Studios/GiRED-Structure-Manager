@@ -2,32 +2,29 @@
 
 O GiRED Structure Manager pode verificar o repositório e fazer `Pull` diretamente a partir do popup através de Native Messaging.
 
-O helper só precisa de ser configurado uma vez por computador.
+Desde a versão `1.4.1`, o ID da extensão é fixo (`mackaaceiagpmapjgllmecpodnnhpcdm`), por isso já não é necessário copiar nem colar o ID durante a instalação.
 
 ## Windows
 
-1. Instalar/carregar a extensão normalmente em `chrome://extensions/` ou `edge://extensions/`
-2. Copiar o ID da extensão apresentado nessa página
-3. Abrir a pasta `updater/windows`
-4. Executar `install-updater.bat`
-5. Colar o ID da extensão quando for pedido
-6. Fechar e voltar a abrir o popup da extensão
-
-O instalador regista o helper para Chrome e Edge apenas para o utilizador atual.
+1. Clonar o repositório através do GitHub Desktop
+2. Executar `INSTALL-WINDOWS.bat` na raiz do repositório
+3. O instalador configura o Native Messaging Host para Chrome e Edge
+4. O instalador abre a pasta da extensão e a página de extensões
+5. Ativar o "Modo de programador" e usar "Carregar sem compactação"
 
 ## macOS
 
-1. Instalar/carregar a extensão normalmente
-2. Copiar o ID da extensão apresentado em `chrome://extensions/` ou `edge://extensions/`
-3. Abrir o Terminal na pasta do repositório
-4. Executar:
+1. Clonar o repositório através do GitHub Desktop
+2. Executar `INSTALL-MAC.command`
+3. O instalador configura o Native Messaging Host para Chrome e Edge
+4. O instalador abre a pasta da extensão e a página de extensões
+5. Ativar o "Modo de programador" e usar "Carregar sem compactação"
+
+Se o macOS não permitir executar `INSTALL-MAC.command` diretamente, executar uma vez:
 
 ```bash
-bash updater/macos/install-updater.sh
+bash INSTALL-MAC.command
 ```
-
-5. Colar o ID da extensão quando for pedido
-6. Fechar e voltar a abrir o popup da extensão
 
 ## Funcionamento
 
@@ -43,4 +40,4 @@ O updater recusa atualizar quando existem alterações locais não guardadas no 
 - O computador tem de conseguir autenticar no repositório privado
 - Git ou GitHub Desktop deve estar instalado
 
-Se o helper não estiver configurado, o popup continua funcional; apenas a atualização automática fica indisponível.
+Depois desta configuração inicial, não é necessário voltar ao GitHub Desktop para atualizações normais.
