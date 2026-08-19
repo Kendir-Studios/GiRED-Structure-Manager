@@ -2,6 +2,21 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.4.1] - 2026-08-19
+
+### Adicionado
+
+- ID fixo da extensão através da chave pública definida no `manifest.json`
+- `INSTALL-WINDOWS.bat` na raiz do repositório para configurar o updater sem pedir o ID
+- `INSTALL-MAC.command` para simplificar a configuração no macOS
+- Abertura automática da pasta da extensão e da página de extensões durante a configuração
+
+### Alterado
+
+- O instalador do Native Messaging deixa de pedir o ID da extensão
+- Chrome e Edge passam a autorizar diretamente o ID fixo `mackaaceiagpmapjgllmecpodnnhpcdm`
+- A instalação inicial fica reduzida a clonar, executar o instalador e usar `Carregar sem compactação`
+
 ## [1.4.0] - 2026-08-19
 
 ### Adicionado
