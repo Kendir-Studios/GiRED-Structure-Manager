@@ -137,3 +137,32 @@ html.gired-structure-mapper-disabled [class*="gired-structure-mapper-"] {
     font-weight: 600;
     line-height: 1.3;
 }
+
+/*
+ * Posicionamento opcional do painel nativo de Revisão do GiRED.
+ * Quando a preferência está ativa, o painel e o respetivo botão passam para a esquerda
+ * e o conteúdo reserva o mesmo espaço do lado oposto.
+ */
+html.gired-review-sidebar-left #vc-review-sidebar {
+    left: 0 !important;
+    right: auto !important;
+    border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-left: 0 !important;
+}
+
+html.gired-review-sidebar-left #vc-review-toggle {
+    left: 0 !important;
+    right: auto !important;
+}
+
+html.gired-review-sidebar-left body.vc-review-open {
+    margin-left: var(--gired-review-sidebar-width, 620px) !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* Garante que o painel continua encostado ao viewport mesmo que o GiRED use transforms. */
+html.gired-review-sidebar-left #vc-review-container {
+    direction: ltr;
+}
