@@ -6,9 +6,16 @@
     const LEFT_CLASS = "gired-review-sidebar-left";
     const COMMENTS_ONLY_CLASS = "gired-review-comments-only";
     const SIDEBAR_SELECTOR = "#vc-review-sidebar";
+    const REVIEW_TOGGLE_SELECTOR = "#vc-review-toggle";
+    const REVIEW_CLOSE_SELECTOR = "#vc-review-close";
     const WIDTH_VARIABLE = "--gired-review-sidebar-width";
 
     let updateScheduled = false;
+
+    /** Indica se o painel nativo de Revisão está atualmente aberto. */
+    function isReviewOpen() {
+        return document.body?.classList.contains("vc-review-open") === true;
+    }
 
     /**
      * Atualiza a largura usada para reservar espaço para o painel quando este fica à esquerda.
@@ -37,11 +44,11 @@
         });
     }
 
-    /** Aplica o lado escolhido ao documento atual. */
+    /** Aplica o lado escolhido ao documento atual sem abrir o painel automaticamente. */
     function applyReviewSide(useLeftSide) {
         document.documentElement.classList.toggle(LEFT_CLASS, useLeftSide);
 
-        if (useLeftSide) {
+        if (useLeftSide && isReviewOpen()) {
             scheduleWidthUpdate();
         }
     }
@@ -56,11 +63,26 @@
         correctionsTab.click();
     }
 
-    /** Aplica o modo compacto que mantém visível apenas a lista de correções existentes. */
+    /** Aplica o modo compacto sem abrir o painel de Revisão automaticamente. */
     function applyCommentsOnly(commentsOnly) {
         document.documentElement.classList.toggle(COMMENTS_ONLY_CLASS, commentsOnly);
 
-        if (commentsOnly) {
+        if (commentsOnly && isReviewOpen()) {
+            window.requestAnimationFrame(ensureCorrectionsTabActive);
+        }
+    }
+
+    /**
+     * Sincroniza as preferências quando o utilizador abre o painel através do botão nativo.
+     */
+    function syncOpenPanel() {
+        if (!isReviewOpen()) return;
+
+        if (document.documentElement.classList.contains(LEFT_CLASS)) {
+            scheduleWidthUpdate();
+        }
+
+        if (document.documentElement.classList.contains(COMMENTS_ONLY_CLASS)) {
             window.requestAnimationFrame(ensureCorrectionsTabActive);
         }
     }
@@ -97,25 +119,51 @@
     }
 
     /**
-     * O painel de revisão é inserido dinamicamente pelo GiRED, por isso observamos o DOM
-     * para obter a largura correta e reaplicar o modo compacto assim que o painel existir.
+     * O painel pode ser inserido dinamicamente. Este observer trata apenas alterações
+     * estruturais; a abertura/fecho por botão é tratada separadamente pela classe do body.
      */
-    const observer = new MutationObserver(() => {
-        if (document.documentElement.classList.contains(LEFT_CLASS)) {
-            scheduleWidthUpdate();
-        }
-
-        if (document.documentElement.classList.contains(COMMENTS_ONLY_CLASS)) {
-            ensureCorrectionsTabActive();
-        }
+    const domObserver = new MutationObserver(() => {
+        syncOpenPanel();
     });
 
-    observer.observe(document.documentElement, {
+    domObserver.observe(document.documentElement, {
         childList: true,
         subtree: true
     });
 
-    window.addEventListener("resize", scheduleWidthUpdate, { passive: true });
+    /**
+     * O GiRED abre e fecha a Revisão alterando a classe `vc-review-open` no body.
+     * Observar essa classe permite aplicar as preferências mesmo quando o painel já estava no DOM.
+     */
+    if (document.body) {
+        const bodyObserver = new MutationObserver(() => {
+            syncOpenPanel();
+        });
+
+        bodyObserver.observe(document.body, {
+            attributes: true,
+            attributeFilter: ["class"]
+        });
+    }
+
+    /**
+     * Depois de clicar no botão nativo de Revisão, sincroniza novamente no frame seguinte.
+     * O botão continua a ser controlado pelo GiRED e permanece no seu lado original.
+     */
+    document.addEventListener("click", event => {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target) return;
+
+        if (!target.closest(`${REVIEW_TOGGLE_SELECTOR}, ${REVIEW_CLOSE_SELECTOR}`)) return;
+
+        window.requestAnimationFrame(syncOpenPanel);
+    }, true);
+
+    window.addEventListener("resize", () => {
+        if (isReviewOpen() && document.documentElement.classList.contains(LEFT_CLASS)) {
+            scheduleWidthUpdate();
+        }
+    }, { passive: true });
 
     void loadReviewPreferences();
 })();
