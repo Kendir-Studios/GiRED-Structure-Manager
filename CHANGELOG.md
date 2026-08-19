@@ -2,6 +2,23 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.4.0] - 2026-08-19
+
+### Adicionado
+
+- Secção de atualizações diretamente no popup da extensão
+- Verificação automática de novas versões ao abrir o popup
+- Botão `Atualizar agora` quando existe uma versão mais recente
+- Atualização do clone local através de Native Messaging e `git pull --ff-only`
+- Recarregamento automático da extensão após uma atualização concluída
+- Helper de atualização para Windows e macOS
+- Botão para copiar o ID da extensão durante a configuração inicial do updater
+
+### Segurança
+
+- O updater recusa atualizar quando existem alterações locais no clone, evitando sobrescrever trabalho local
+- O helper nativo só aceita mensagens da extensão autorizada no respetivo manifesto de Native Messaging
+
 ## [1.3.7] - 2026-08-18
 
 ### Adicionado
