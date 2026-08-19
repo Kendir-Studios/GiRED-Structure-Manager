@@ -2,16 +2,10 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 HOST_NAME="pt.kendir.gired_updater"
 HOST_PATH="$SCRIPT_DIR/kendir-gired-updater.sh"
-
-printf 'Cole o ID da extensão apresentado em chrome://extensions ou edge://extensions: '
-read -r EXTENSION_ID
-
-if ! printf '%s' "$EXTENSION_ID" | grep -Eq '^[a-p]{32}$'; then
-    echo 'ID inválido. O ID deve ter 32 caracteres entre a e p.'
-    exit 1
-fi
+EXTENSION_ID="mackaaceiagpmapjgllmecpodnnhpcdm"
 
 chmod +x "$HOST_PATH"
 
@@ -35,7 +29,18 @@ EOF
 printf '%s\n' "$MANIFEST_CONTENT" > "$CHROME_DIR/$HOST_NAME.json"
 printf '%s\n' "$MANIFEST_CONTENT" > "$EDGE_DIR/$HOST_NAME.json"
 
-echo 'Updater instalado com sucesso.'
-echo "Extensão autorizada: $EXTENSION_ID"
+echo 'Updater configurado com sucesso.'
+echo "ID fixo da extensão: $EXTENSION_ID"
 echo 'Chrome e Edge foram configurados para o utilizador atual.'
-echo 'Fecha e volta a abrir o popup da extensão para testar.'
+
+open "$REPO_ROOT" >/dev/null 2>&1 || true
+
+if [ -d "/Applications/Google Chrome.app" ]; then
+    open -a "Google Chrome" "chrome://extensions/" >/dev/null 2>&1 || true
+elif [ -d "/Applications/Microsoft Edge.app" ]; then
+    open -a "Microsoft Edge" "edge://extensions/" >/dev/null 2>&1 || true
+fi
+
+echo ''
+echo "Último passo: ativa o Modo de programador e usa 'Carregar sem compactação' nesta pasta:"
+echo "$REPO_ROOT"
