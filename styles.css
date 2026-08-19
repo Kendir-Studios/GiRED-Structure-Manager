@@ -140,10 +140,10 @@ html.gired-structure-mapper-disabled [class*="gired-structure-mapper-"] {
 
 /*
  * Posicionamento opcional do painel nativo de Revisão do GiRED.
- * Apenas o painel aberto passa para a esquerda; o botão nativo que abre a Revisão
- * permanece no lado direito, tal como no GiRED original.
+ * Apenas o painel ABERTO passa para a esquerda; quando fecha, os estilos nativos
+ * voltam a controlar a posição e o painel pode sair corretamente do viewport.
  */
-html.gired-review-sidebar-left #vc-review-sidebar {
+html.gired-review-sidebar-left body.vc-review-open #vc-review-sidebar {
     left: 0 !important;
     right: auto !important;
     border-right: 1px solid rgba(0, 0, 0, 0.12) !important;
@@ -157,32 +157,32 @@ html.gired-review-sidebar-left body.vc-review-open {
     padding-right: 0 !important;
 }
 
-/* Garante que o painel continua encostado ao viewport mesmo que o GiRED use transforms. */
-html.gired-review-sidebar-left #vc-review-container {
+/* Garante que o painel continua com direção normal quando está aberto à esquerda. */
+html.gired-review-sidebar-left body.vc-review-open #vc-review-container {
     direction: ltr;
 }
 
 /*
  * Modo opcional "Só lista de correções".
  * Mantém o cabeçalho/fechar e a lista de comentários, escondendo o formulário e as tabs.
- * O modo só altera o conteúdo quando o utilizador abre a Revisão pelo botão nativo.
+ * O modo só altera o conteúdo enquanto a Revisão está efetivamente aberta.
  */
-html.gired-review-comments-only #vc-review-sidebar .vc-review-tabs,
-html.gired-review-comments-only #vc-review-sidebar .vc-review-unit-info,
-html.gired-review-comments-only #vc-review-sidebar #vc-review-state-banner,
-html.gired-review-comments-only #vc-review-sidebar #vc-review-form,
-html.gired-review-comments-only #vc-review-sidebar #vc-review-tab-workflow {
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar .vc-review-tabs,
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar .vc-review-unit-info,
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar #vc-review-state-banner,
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar #vc-review-form,
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar #vc-review-tab-workflow {
     display: none !important;
 }
 
-html.gired-review-comments-only #vc-review-sidebar #vc-review-tab-corrections {
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar #vc-review-tab-corrections {
     display: flex !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
     flex-direction: column !important;
 }
 
-html.gired-review-comments-only #vc-review-sidebar .vc-review-content {
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar .vc-review-content {
     display: flex !important;
     flex: 1 1 auto !important;
     min-height: 0 !important;
@@ -190,7 +190,7 @@ html.gired-review-comments-only #vc-review-sidebar .vc-review-content {
     overflow: hidden !important;
 }
 
-html.gired-review-comments-only #vc-review-sidebar .vc-review-comments-list {
+html.gired-review-comments-only body.vc-review-open #vc-review-sidebar .vc-review-comments-list {
     flex: 1 1 auto !important;
     min-height: 0 !important;
     max-height: none !important;
