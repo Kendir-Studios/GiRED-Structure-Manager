@@ -10,12 +10,16 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 - `INSTALL-WINDOWS.bat` na raiz do repositório para configurar o updater sem pedir o ID
 - `INSTALL-MAC.command` para simplificar a configuração no macOS
 - Abertura automática da pasta da extensão e da página de extensões durante a configuração
+- Service worker de atualização automática em segundo plano
+- Verificação de updates no arranque do browser, após updates e periodicamente através de `chrome.alarms`
+- Instalação automática da nova versão através do helper quando `origin/main` está à frente e o clone está limpo
 
 ### Alterado
 
 - O instalador do Native Messaging deixa de pedir o ID da extensão
 - Chrome e Edge passam a autorizar diretamente o ID fixo `mackaaceiagpmapjgllmecpodnnhpcdm`
 - A instalação inicial fica reduzida a clonar, executar o instalador e usar `Carregar sem compactação`
+- O botão `Atualizar agora` continua disponível no popup apenas como controlo manual/fallback
 
 ## [1.4.0] - 2026-08-19
 
