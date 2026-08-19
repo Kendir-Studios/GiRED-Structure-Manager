@@ -14,7 +14,8 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Pode ser ligada/desligada diretamente no popup
 - Permite escolher se o painel nativo de Revisão do GiRED aparece à esquerda ou à direita
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
-- As preferências da Revisão ficam guardadas e são aplicadas imediatamente às páginas abertas
+- Respeita o botão nativo `Revisão`: o painel continua fechado até o utilizador o abrir
+- As preferências da Revisão ficam guardadas e são aplicadas quando o painel é aberto
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
 - Popup compacto com interface visual própria para o mapper
@@ -63,20 +64,22 @@ O ID da extensão é fixo entre computadores: `mackaaceiagpmapjgllmecpodnnhpcdm`
 
 A partir da v1.5.0, o popup inclui a opção `Revisão do lado esquerdo`.
 
-- Ativa: o painel nativo de Revisão do GiRED fica do lado esquerdo
+- Ativa: quando o utilizador abre a Revisão, o painel aparece do lado esquerdo
 - Desativada: mantém o comportamento original do GiRED, com o painel do lado direito
+- O botão nativo `Revisão` continua do lado direito e é o responsável por abrir/fechar o painel
 - A preferência fica guardada em `chrome.storage.local`
-- A alteração é aplicada imediatamente sem ser necessário recarregar a página
 
-Por omissão, numa instalação nova, o painel é apresentado à esquerda.
+Por omissão, numa instalação nova, o painel é apresentado à esquerda quando é aberto.
 
 A partir da v1.6.0 existe também a opção `Só lista de correções`.
 
-- Ativa: mantém o cabeçalho do painel e mostra apenas a lista de comentários/correções existentes
+- Ativa: ao abrir a Revisão, mantém o cabeçalho do painel e mostra apenas a lista de comentários/correções existentes
 - O formulário de nova correção, a informação da unidade e as tabs ficam ocultos
 - A aba de Correções é automaticamente mantida ativa
 - Desativada: o painel volta ao modo completo do GiRED
 - Esta opção vem desativada por omissão
+
+A v1.6.1 melhora a deteção do estado aberto/fechado do painel. A extensão observa a classe `vc-review-open` aplicada pelo próprio GiRED e reaplica as preferências sempre que o botão nativo abre a Revisão, sem forçar o painel a ficar permanentemente visível.
 
 ## Atualizações
 
@@ -97,11 +100,11 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-A v1.6.0 acrescenta uma segunda preferência para simplificar o painel de Revisão quando o utilizador só quer consultar as correções existentes.
+A v1.6.1 mantém as preferências introduzidas na v1.6.0, mas passa a respeitar explicitamente o ciclo nativo abrir/fechar do painel de Revisão.
 
 ## Versão atual
 
-`1.6.0`
+`1.6.1`
 
 ## Versionamento
 
