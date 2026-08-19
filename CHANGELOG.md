@@ -2,6 +2,23 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.4.4] - 2026-08-19
+
+### Alterado
+
+- Interface do popup redesenhada novamente, mantendo a lógica funcional estável da v1.4.3
+- Novo cabeçalho compacto com identidade visual SA / AT
+- Estado da extensão reorganizado num card dedicado
+- Área de atualizações reorganizada com melhor hierarquia visual
+- Melhorados espaçamentos, contraste, tipografia e estados do botão/toggle
+- Adicionado rodapé discreto com identificação da Kendir Studios
+
+### Segurança / Estabilidade
+
+- `popup.js` não foi alterado nesta versão
+- `background.js` não foi alterado nesta versão
+- Mantidos exatamente os mesmos IDs usados pelo JavaScript (`enabledToggle`, `statusText`, `version`, `updateStatus`, `latestVersion`, `updateButton`, `updaterSetup`)
+
 ## [1.4.3] - 2026-08-19
 
 ### Corrigido
