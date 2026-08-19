@@ -11,8 +11,6 @@
     const latestVersion = document.getElementById("latestVersion");
     const updateButton = document.getElementById("updateButton");
     const updaterSetup = document.getElementById("updaterSetup");
-    const extensionId = document.getElementById("extensionId");
-    const copyIdButton = document.getElementById("copyIdButton");
 
     let updateAction = "check";
 
@@ -41,7 +39,6 @@
         updateStatus.textContent = "Updater local não configurado";
         latestVersion.hidden = true;
         updaterSetup.hidden = false;
-        extensionId.textContent = chrome.runtime.id;
         updateButton.disabled = false;
         updateButton.textContent = "Verificar novamente";
         updateAction = "check";
@@ -51,6 +48,7 @@
     function showUpdateError(message) {
         updateStatus.textContent = message || "Não foi possível verificar atualizações";
         latestVersion.hidden = true;
+        updaterSetup.hidden = true;
         updateButton.disabled = false;
         updateButton.textContent = "Tentar novamente";
         updateAction = "check";
@@ -96,6 +94,7 @@
     async function installUpdate() {
         updateStatus.textContent = "A atualizar...";
         latestVersion.hidden = true;
+        updaterSetup.hidden = true;
         updateButton.disabled = true;
         updateButton.textContent = "A atualizar...";
 
@@ -146,19 +145,6 @@
         }
 
         void checkUpdates();
-    });
-
-    /** Copia o ID da extensão para facilitar a instalação inicial do updater. */
-    copyIdButton.addEventListener("click", async () => {
-        try {
-            await navigator.clipboard.writeText(chrome.runtime.id);
-            copyIdButton.textContent = "Copiado";
-            window.setTimeout(() => {
-                copyIdButton.textContent = "Copiar ID";
-            }, 1200);
-        } catch (_) {
-            copyIdButton.textContent = "Falhou";
-        }
     });
 
     void initialize();
