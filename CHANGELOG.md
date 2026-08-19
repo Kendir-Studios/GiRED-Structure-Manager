@@ -2,6 +2,23 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.6.0] - 2026-08-19
+
+### Adicionado
+
+- Nova preferência `Só lista de correções` no popup
+- Modo compacto opcional para o painel nativo de Revisão do GiRED
+- Quando ativo, mantém apenas o cabeçalho e a lista de comentários/correções existentes
+- O formulário de nova correção, a informação da unidade e as tabs ficam ocultos
+- A aba de Correções é mantida ativa automaticamente
+- A preferência fica guardada em `chrome.storage.local` e é aplicada imediatamente às páginas abertas
+
+### Alterado
+
+- `review-sidebar-control.js` passa a gerir também o modo compacto do painel de Revisão
+- A área de Preferências do popup passa a suportar múltiplos toggles
+- O modo `Só lista de correções` fica desativado por omissão para preservar o comportamento completo do GiRED
+
 ## [1.5.0] - 2026-08-19
 
 ### Adicionado
