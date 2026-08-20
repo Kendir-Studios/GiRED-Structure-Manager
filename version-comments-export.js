@@ -4,14 +4,17 @@
     const SIDEBAR_SELECTOR = "#course-vc-sidebar";
     const COMMENTS_LIST_SELECTOR = "#vc-comments-list";
     const COMMENT_SELECTOR = ".course-vc-comment-item";
+    const LOAD_MORE_SELECTOR = ".course-vc-comments-load-more button";
     const NATIVE_EXPORT_SELECTOR = "#vc-export-comments";
     const EXPORT_BUTTON_ID = "gired-vc-export-mapper";
+    const OVERLAY_ID = "gired-vc-export-overlay";
+    const OVERLAY_STATUS_ID = "gired-vc-export-overlay-status";
     const SEARCH_HIDDEN_CLASS = "gired-vc-search-hidden";
     const SEARCH_INPUT_SELECTOR = "#gired-vc-comments-search";
     const NATIVE_FILTER_SELECTOR = "#vc-filter-severity, #vc-filter-status, #vc-filter-team";
-    const LOAD_WAIT_MS = 1400;
+    const LOAD_WAIT_MS = 1600;
     const REQUIRED_IDLE_ROUNDS = 4;
-    const MAX_LOAD_ROUNDS = 180;
+    const MAX_LOAD_ROUNDS = 220;
 
     const EXPORT_HEADERS = [
         "Issue",
@@ -181,6 +184,95 @@
         return fallback || sidebar;
     }
 
+    /** Cria um overlay modal que bloqueia a interface durante o processamento. */
+    function showProcessingOverlay() {
+        let overlay = document.getElementById(OVERLAY_ID);
+        if (overlay) return overlay;
+
+        overlay = document.createElement("div");
+        overlay.id = OVERLAY_ID;
+        overlay.setAttribute("role", "alertdialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.setAttribute("aria-labelledby", `${OVERLAY_ID}-title`);
+
+        Object.assign(overlay.style, {
+            position: "fixed",
+            inset: "0",
+            zIndex: "2147483647",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            background: "rgba(15, 23, 42, 0.54)",
+            backdropFilter: "blur(2px)",
+            WebkitBackdropFilter: "blur(2px)",
+            cursor: "wait"
+        });
+
+        const card = document.createElement("div");
+        Object.assign(card.style, {
+            width: "min(420px, calc(100vw - 48px))",
+            boxSizing: "border-box",
+            padding: "24px",
+            border: "1px solid rgba(15, 23, 42, 0.12)",
+            borderRadius: "12px",
+            background: "#ffffff",
+            boxShadow: "0 18px 50px rgba(15, 23, 42, 0.24)",
+            color: "#1f2933",
+            textAlign: "center",
+            fontFamily: "inherit"
+        });
+
+        const spinner = document.createElement("div");
+        Object.assign(spinner.style, {
+            width: "34px",
+            height: "34px",
+            margin: "0 auto 16px",
+            border: "4px solid #dbe4e8",
+            borderTopColor: "#0a7f40",
+            borderRadius: "50%",
+            animation: "gired-vc-export-spin 0.85s linear infinite"
+        });
+
+        const style = document.createElement("style");
+        style.textContent = "@keyframes gired-vc-export-spin { to { transform: rotate(360deg); } }";
+        overlay.appendChild(style);
+
+        const title = document.createElement("div");
+        title.id = `${OVERLAY_ID}-title`;
+        title.textContent = "A preparar exportação";
+        Object.assign(title.style, {
+            marginBottom: "8px",
+            fontSize: "18px",
+            fontWeight: "700"
+        });
+
+        const status = document.createElement("div");
+        status.id = OVERLAY_STATUS_ID;
+        status.textContent = "A carregar todos os erros. Não feches esta página.";
+        Object.assign(status.style, {
+            fontSize: "13px",
+            lineHeight: "1.5",
+            color: "#5f6b76"
+        });
+
+        card.append(spinner, title, status);
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+        return overlay;
+    }
+
+    /** Atualiza a mensagem apresentada no overlay de processamento. */
+    function updateProcessingOverlay(message) {
+        const status = document.getElementById(OVERLAY_STATUS_ID);
+        if (status) status.textContent = message;
+    }
+
+    /** Remove o overlay e devolve o controlo da interface ao utilizador. */
+    function hideProcessingOverlay() {
+        document.getElementById(OVERLAY_ID)?.remove();
+    }
+
     /** Aguarda que uma nova página de comentários seja acrescentada ao DOM ou que o tempo expire. */
     function waitForCommentGrowth(previousCount) {
         const list = document.querySelector(COMMENTS_LIST_SELECTOR);
@@ -214,15 +306,24 @@
         });
     }
 
+    /** Devolve o botão nativo "Carregar Mais" quando ainda está disponível e clicável. */
+    function getLoadMoreButton() {
+        const button = document.querySelector(`${SIDEBAR_SELECTOR} ${LOAD_MORE_SELECTOR}`);
+        if (!(button instanceof HTMLButtonElement)) return null;
+        if (button.disabled) return null;
+
+        const style = window.getComputedStyle(button);
+        if (style.display === "none" || style.visibility === "hidden") return null;
+        return button;
+    }
+
     /**
-     * Força o mecanismo de lazy loading do GiRED a percorrer todas as páginas de comentários.
-     * O scroll original é restaurado no fim para não deixar o utilizador no fundo do painel.
+     * Força o GiRED a carregar todas as páginas de comentários.
+     * Dá prioridade ao botão nativo "Carregar Mais" e mantém o scroll como fallback.
      */
     async function loadAllComments(button) {
         const scroller = findScrollContainer();
-        if (!scroller) return getLoadedCommentCount();
-
-        const originalScrollTop = scroller.scrollTop;
+        const originalScrollTop = scroller?.scrollTop ?? 0;
         const expectedTotal = getExpectedGlobalTotal();
         let previousCount = getLoadedCommentCount();
         let idleRounds = 0;
@@ -232,12 +333,20 @@
         }
 
         for (let round = 0; round < MAX_LOAD_ROUNDS; round += 1) {
-            button.textContent = expectedTotal
-                ? `A carregar... ${previousCount}/${expectedTotal}`
-                : `A carregar... ${previousCount}`;
+            const progress = expectedTotal
+                ? `${previousCount}/${expectedTotal}`
+                : `${previousCount}`;
 
-            scroller.scrollTop = scroller.scrollHeight;
-            scroller.dispatchEvent(new Event("scroll", { bubbles: true }));
+            button.textContent = `A carregar... ${progress}`;
+            updateProcessingOverlay(`A carregar todos os erros: ${progress}`);
+
+            const loadMoreButton = getLoadMoreButton();
+            if (loadMoreButton) {
+                loadMoreButton.click();
+            } else if (scroller) {
+                scroller.scrollTop = scroller.scrollHeight;
+                scroller.dispatchEvent(new Event("scroll", { bubbles: true }));
+            }
 
             const grew = await waitForCommentGrowth(previousCount);
             const currentCount = getLoadedCommentCount();
@@ -253,18 +362,28 @@
                 continue;
             }
 
+            // Alguns lotes recriam o botão sem acrescentar imediatamente os itens.
+            // Se o botão continuar disponível, volta a tentar antes de considerar o processo concluído.
+            if (getLoadMoreButton()) {
+                idleRounds = 0;
+                await new Promise(resolve => window.setTimeout(resolve, 180));
+                continue;
+            }
+
             idleRounds += 1;
             if (idleRounds >= REQUIRED_IDLE_ROUNDS) break;
         }
 
-        scroller.scrollTop = Math.min(originalScrollTop, scroller.scrollHeight);
-        scroller.dispatchEvent(new Event("scroll", { bubbles: true }));
+        if (scroller) {
+            scroller.scrollTop = Math.min(originalScrollTop, scroller.scrollHeight);
+            scroller.dispatchEvent(new Event("scroll", { bubbles: true }));
+        }
 
         // Dá tempo aos observers da pesquisa/filtros para processarem a última página carregada.
         await new Promise(resolve => window.requestAnimationFrame(() => {
             window.requestAnimationFrame(resolve);
         }));
-        await new Promise(resolve => window.setTimeout(resolve, 80));
+        await new Promise(resolve => window.setTimeout(resolve, 100));
 
         return getLoadedCommentCount();
     }
@@ -349,23 +468,28 @@
         const originalTitle = button.title;
         button.disabled = true;
         button.title = "A carregar todos os comentários antes de exportar";
+        showProcessingOverlay();
 
         try {
             const loadedCount = await loadAllComments(button);
             const expectedTotal = getExpectedGlobalTotal();
 
             if (expectedTotal && loadedCount < expectedTotal) {
+                hideProcessingOverlay();
                 const proceed = window.confirm(
                     `O GiRED indica ${expectedTotal} comentários, mas só foi possível carregar ${loadedCount}. ` +
                     "Queres exportar mesmo assim?"
                 );
                 if (!proceed) return;
+                showProcessingOverlay();
             }
 
             button.textContent = "A gerar Excel...";
+            updateProcessingOverlay(`A gerar o Excel com ${getVisibleComments().length} erro(s)...`);
             const rows = getVisibleComments().map(commentToRow);
             exportRows(rows);
         } finally {
+            hideProcessingOverlay();
             button.innerHTML = originalHtml;
             button.title = originalTitle;
             button.disabled = false;
