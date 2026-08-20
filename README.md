@@ -15,9 +15,9 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o painel nativo de Revisão no lado direito do GiRED
 - Faz a página adaptar-se automaticamente à largura do painel de Revisão, evitando que este tape o conteúdo
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
-- Permite escolher se o painel nativo de Controlo de Versões aparece à direita ou mantém o lado esquerdo original
+- Mantém o painel nativo de Controlo de Versões no lado esquerdo do GiRED
+- Faz a página adaptar-se automaticamente à largura do Controlo de Versões, evitando que este tape o conteúdo
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
-- As preferências dos painéis ficam guardadas e são aplicadas imediatamente
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
 - Popup compacto com interface visual própria para o mapper
@@ -89,15 +89,16 @@ Continua disponível a opção `Só lista de correções`:
 
 ## Controlo de Versões
 
-A partir da v1.7.0, o popup inclui a opção `Controlo de Versões à direita`.
+A partir da v1.7.3, o Controlo de Versões permanece sempre no lado esquerdo nativo do GiRED e deixa de funcionar visualmente como overlay.
 
-- Ativa: quando o utilizador abre o Controlo de Versões, o painel aparece do lado direito
-- Desativada: mantém o comportamento original do GiRED, com o painel do lado esquerdo
-- A extensão acompanha a classe nativa `course-vc-open` e não força o painel a ficar aberto
-- O botão e o `X` nativos continuam responsáveis pela abertura e fecho
-- A largura é detetada automaticamente para reservar espaço no lado correto
-- Por omissão, numa instalação nova, o Controlo de Versões abre à direita
-- Se Revisão e Controlo de Versões estiverem abertos simultaneamente à direita, os dois painéis são colocados lado a lado e a página reserva espaço para ambos
+- a preferência `Controlo de Versões à direita` foi removida do popup
+- a antiga chave `giredVersionSidebarRight` é limpa automaticamente
+- o painel continua a abrir e fechar através dos controlos nativos do GiRED
+- quando o painel abre, a extensão mede a largura real de `#course-vc-sidebar`
+- enquanto `course-vc-open` está ativo, a página reserva essa largura no lado esquerdo
+- o layout responsivo adapta-se ao espaço restante em vez de ficar escondido por baixo do painel
+- quando o painel fecha, a margem esquerda desaparece e a página recupera toda a largura
+- se a Revisão estiver aberta ao mesmo tempo, o Controlo de Versões reserva espaço à esquerda e a Revisão reserva espaço à direita
 
 ## Atualizações
 
@@ -118,17 +119,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-Na v1.7.2, a Revisão permanece à direita, mas a página adapta-se automaticamente à sua largura para que o conteúdo não fique tapado.
+Na v1.7.3, os dois painéis principais adaptam a página sem a tapar: Controlo de Versões à esquerda e Revisão à direita.
 
 ## Versão atual
 
-`1.7.2`
+`1.7.3`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.7.2` -> `1.7.3`): correções e melhorias pequenas
+- `PATCH` (`1.7.3` -> `1.7.4`): correções e melhorias pequenas
 - `MINOR` (`1.7.x` -> `1.8.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
