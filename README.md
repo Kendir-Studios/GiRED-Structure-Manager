@@ -15,7 +15,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o painel nativo de Revisão no lado direito do GiRED
 - Faz a página adaptar-se automaticamente à largura do painel de Revisão, evitando que este tape o conteúdo
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
-- Destaca erros abertos com fundo laranja suave e erros resolvidos com fundo verde suave
+- Diferencia erros abertos e resolvidos através de cards neutros com barra lateral e badge de estado coloridos
 - Mantém o painel nativo de Controlo de Versões no lado esquerdo do GiRED
 - Faz a página adaptar-se automaticamente à largura do Controlo de Versões, evitando que este tape o conteúdo
 - Adiciona pesquisa rápida aos comentários do Controlo de Versões
@@ -90,12 +90,14 @@ Continua disponível a opção `Só lista de correções`:
 - Desativada: o painel volta ao modo completo do GiRED
 - Esta opção vem desativada por omissão
 
-A partir da v1.8.2, os erros da Revisão ficam visualmente diferenciados pelo estado:
+A partir da v1.8.5, os estados passam a ter uma apresentação mais limpa:
 
-- `Aberto`: fundo laranja muito suave com uma pequena marca lateral laranja
-- `Resolvido`: fundo verde muito suave com uma pequena marca lateral verde
-- o destaque é aplicado ao erro completo sem alterar os badges ou os controlos nativos
-- ao desligar a extensão, os fundos adicionais deixam de ser aplicados
+- cada erro volta a ter fundo branco/neutro
+- `Aberto` usa uma barra lateral laranja e um badge laranja suave
+- `Resolvido` usa uma barra lateral verde e um badge verde suave
+- cada erro é apresentado como um card separado, com contorno e espaçamento discreto
+- os blocos nativos de sugestão, citação e motivo mantêm as suas próprias cores, sem ficarem misturados com um fundo geral laranja/verde
+- ao desligar a extensão, estes estilos adicionais deixam de ser aplicados
 
 ## Controlo de Versões
 
@@ -121,11 +123,11 @@ A partir da v1.8.0, a aba `Comentários` inclui uma barra de pesquisa imediatame
 - funciona em conjunto com os filtros nativos de Severidade, Estado e Equipa
 - se o GiRED recriar a lista de comentários, a barra e a pesquisa são reaplicadas automaticamente
 
-A partir da v1.8.3, as pills de localização usam os códigos reais da estrutura:
+A partir da v1.8.4, as pills de localização usam os códigos reais da estrutura com um fallback adicional baseado no próprio link da unidade:
 
 - lê `.course-vc-comment-location` no formato `ignorar > ignorar > SA > AT`
-- usa o mapa de rotas partilhado do Structure Mapper para converter os nomes em códigos
-- usa também o outline atual do curso como fonte adicional de mapeamento
+- tenta usar diretamente o block ID presente no link CMS do erro para identificar a posição da atividade
+- usa também o mapa de rotas partilhado do Structure Mapper e o outline atual como fallback
 - apresenta o formato compacto `SA01/AT05`
 - a primeira unidade de cada SA aparece como `SA01/INTROD`
 - a localização completa original continua visível por baixo
@@ -151,17 +153,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-Na v1.8.3, a localização dos comentários passa a mostrar diretamente códigos como `SA01/AT05`, em vez dos nomes longos da SA e da AT.
+Na v1.8.5, a lista da Revisão deixa de pintar o erro inteiro de laranja/verde. O estado passa a ser indicado principalmente pela barra lateral e pelo badge, mantendo o conteúdo legível e visualmente separado.
 
 ## Versão atual
 
-`1.8.3`
+`1.8.5`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.8.3` -> `1.8.4`): correções e melhorias pequenas
+- `PATCH` (`1.8.5` -> `1.8.6`): correções e melhorias pequenas
 - `MINOR` (`1.8.x` -> `1.9.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
