@@ -1,8 +1,8 @@
 (() => {
     "use strict";
 
-    const VERSION_RIGHT_KEY = "giredVersionSidebarRight";
-    const RIGHT_CLASS = "gired-version-sidebar-right";
+    const LEGACY_VERSION_RIGHT_KEY = "giredVersionSidebarRight";
+    const LEGACY_RIGHT_CLASS = "gired-version-sidebar-right";
     const SIDEBAR_SELECTOR = "#course-vc-sidebar";
     const OPEN_BODY_CLASS = "course-vc-open";
     const WIDTH_VARIABLE = "--gired-version-sidebar-width";
@@ -14,7 +14,10 @@
         return document.body?.classList.contains(OPEN_BODY_CLASS) === true;
     }
 
-    /** Atualiza a largura reservada para o painel quando este é apresentado à direita. */
+    /**
+     * Mede a largura real do painel nativo e guarda-a numa variável CSS.
+     * A página usa esta largura para reservar espaço à esquerda enquanto o painel está aberto.
+     */
     function updateSidebarWidth() {
         const sidebar = document.querySelector(SIDEBAR_SELECTOR);
         if (!sidebar) return;
@@ -28,7 +31,7 @@
         }
     }
 
-    /** Agenda a leitura da largura para evitar cálculos repetidos durante alterações do DOM. */
+    /** Agenda a medição para o próximo frame, evitando cálculos repetidos. */
     function scheduleWidthUpdate() {
         if (updateScheduled) return;
         updateScheduled = true;
@@ -39,41 +42,32 @@
         });
     }
 
-    /** Aplica o lado escolhido sem abrir nem fechar o painel nativo. */
-    function applyVersionSide(useRightSide) {
-        document.documentElement.classList.toggle(RIGHT_CLASS, useRightSide);
+    /**
+     * Remove a preferência antiga que permitia mover o painel para a direita.
+     * A partir desta versão, o Controlo de Versões mantém sempre o lado esquerdo nativo do GiRED.
+     */
+    async function removeLegacyRightPreference() {
+        document.documentElement.classList.remove(LEGACY_RIGHT_CLASS);
 
-        if (useRightSide && isVersionSidebarOpen()) {
-            scheduleWidthUpdate();
-        }
-    }
-
-    /** Carrega a preferência guardada. Por omissão, o painel fica do lado direito. */
-    async function loadVersionPreference() {
         try {
-            const result = await chrome.storage.local.get(VERSION_RIGHT_KEY);
-            applyVersionSide(result[VERSION_RIGHT_KEY] !== false);
+            await chrome.storage.local.remove(LEGACY_VERSION_RIGHT_KEY);
         } catch (_) {
-            applyVersionSide(true);
+            // A limpeza da preferência antiga não deve impedir o funcionamento do painel.
         }
     }
 
-    /** Atualiza imediatamente a página quando a preferência é alterada no popup. */
-    if (chrome?.storage?.onChanged) {
-        chrome.storage.onChanged.addListener((changes, areaName) => {
-            if (areaName !== "local" || !changes[VERSION_RIGHT_KEY]) return;
-            applyVersionSide(changes[VERSION_RIGHT_KEY].newValue !== false);
-        });
+    /** Sincroniza a largura sempre que o painel nativo está aberto. */
+    function syncOpenPanel() {
+        if (!isVersionSidebarOpen()) return;
+        scheduleWidthUpdate();
     }
 
     /**
-     * O painel é inserido dinamicamente pelo GiRED. O observer permite obter a largura
-     * correta assim que o Controlo de Versões estiver disponível e aberto.
+     * O painel pode ser inserido dinamicamente pelo GiRED.
+     * O observer garante que a largura é medida assim que o painel estiver disponível.
      */
     const domObserver = new MutationObserver(() => {
-        if (!document.documentElement.classList.contains(RIGHT_CLASS)) return;
-        if (!isVersionSidebarOpen()) return;
-        scheduleWidthUpdate();
+        syncOpenPanel();
     });
 
     domObserver.observe(document.documentElement, {
@@ -81,12 +75,13 @@
         subtree: true
     });
 
-    /** A abertura/fecho é sinalizada pelo próprio GiRED através de `course-vc-open`. */
+    /**
+     * O GiRED abre e fecha o Controlo de Versões através da classe `course-vc-open` no body.
+     * Quando abre, medimos o painel e a página passa automaticamente a reservar esse espaço.
+     */
     if (document.body) {
         const bodyObserver = new MutationObserver(() => {
-            if (!document.documentElement.classList.contains(RIGHT_CLASS)) return;
-            if (!isVersionSidebarOpen()) return;
-            scheduleWidthUpdate();
+            syncOpenPanel();
         });
 
         bodyObserver.observe(document.body, {
@@ -95,12 +90,12 @@
         });
     }
 
-    /** Recalcula a largura se o viewport mudar enquanto o painel estiver aberto. */
+    /** Mantém a reserva correta caso a janela ou o painel mudem de largura. */
     window.addEventListener("resize", () => {
-        if (document.documentElement.classList.contains(RIGHT_CLASS) && isVersionSidebarOpen()) {
+        if (isVersionSidebarOpen()) {
             scheduleWidthUpdate();
         }
     }, { passive: true });
 
-    void loadVersionPreference();
+    void removeLegacyRightPreference().then(syncOpenPanel);
 })();
