@@ -148,16 +148,19 @@ body.vc-review-open {
     padding-right: 0 !important;
 }
 
-/* Toggle compacto no topo da Revisão para mostrar apenas erros abertos. */
+/*
+ * Filtros compactos no topo da Revisão.
+ * Mantém o contador na mesma linha do nome para poupar altura vertical.
+ */
 .gired-structure-mapper-review-open-filter {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 8px;
     box-sizing: border-box;
-    min-height: 46px;
-    padding: 8px 14px;
-    border-bottom: 1px solid rgba(15, 23, 42, 0.10);
+    min-height: 32px;
+    padding: 4px 10px;
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
     background: #f8fafb;
     color: #334155;
 }
@@ -165,28 +168,37 @@ body.vc-review-open {
 .gired-structure-mapper-review-open-filter__copy {
     display: flex;
     min-width: 0;
-    flex-direction: column;
-    gap: 1px;
+    flex: 1 1 auto;
+    align-items: baseline;
+    gap: 6px;
+    overflow: hidden;
 }
 
 .gired-structure-mapper-review-open-filter__label {
-    font-size: 12px;
+    overflow: hidden;
+    color: #334155;
+    font-size: 11px;
     font-weight: 600;
-    line-height: 1.35;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .gired-structure-mapper-review-open-filter__count {
-    color: #7b8790;
-    font-size: 10px;
-    line-height: 1.25;
+    flex: 0 0 auto;
+    color: #8a959d;
+    font-size: 9px;
+    font-weight: 500;
+    line-height: 1.2;
+    white-space: nowrap;
 }
 
 .gired-structure-mapper-review-open-filter__switch {
     position: relative;
     display: inline-flex;
-    width: 34px;
-    height: 19px;
-    flex: 0 0 34px;
+    width: 30px;
+    height: 17px;
+    flex: 0 0 30px;
     cursor: pointer;
 }
 
@@ -212,8 +224,8 @@ body.vc-review-open {
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 13px;
-    height: 13px;
+    width: 11px;
+    height: 11px;
     border-radius: 50%;
     background: #ffffff;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.22);
@@ -226,15 +238,15 @@ body.vc-review-open {
 }
 
 .gired-structure-mapper-review-open-filter__switch input:checked + .gired-structure-mapper-review-open-filter__track .gired-structure-mapper-review-open-filter__thumb {
-    transform: translateX(15px);
+    transform: translateX(13px);
 }
 
 .gired-structure-mapper-review-open-filter__switch input:focus-visible + .gired-structure-mapper-review-open-filter__track {
     outline: 2px solid rgba(22, 148, 71, 0.30);
-    outline-offset: 2px;
+    outline-offset: 1px;
 }
 
-/* O filtro é apenas visual: os erros resolvidos continuam no DOM e regressam ao desligar o toggle. */
+/* O filtro é apenas visual: os erros filtrados continuam no DOM e regressam ao desligar o toggle. */
 html:not(.gired-structure-mapper-disabled) #vc-review-sidebar .vc-review-comment-item.gired-review-open-filter-hidden {
     display: none !important;
 }
