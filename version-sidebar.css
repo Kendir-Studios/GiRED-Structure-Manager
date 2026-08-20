@@ -32,11 +32,38 @@ body.course-vc-open.vc-review-open {
     border-radius: 4px;
     background: #ffffff;
     color: #667783;
+    transition: border-color 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
 }
 
 .gired-structure-mapper-vc-search:focus-within {
     border-color: #0a7f40;
     box-shadow: 0 0 0 1px rgba(10, 127, 64, 0.12);
+}
+
+/* Enquanto pesquisa, o GiRED Fixer carrega automaticamente todos os lotes de erros. */
+.gired-structure-mapper-vc-search.is-loading {
+    border-color: rgba(10, 127, 64, 0.38);
+    background: rgba(10, 127, 64, 0.035);
+}
+
+.gired-structure-mapper-vc-search.is-loading .gired-vc-search-icon {
+    animation: gired-vc-search-pulse 0.9s ease-in-out infinite alternate;
+}
+
+/* Se o GiRED não permitir carregar a totalidade, a barra deixa isso explícito. */
+.gired-structure-mapper-vc-search.has-warning {
+    border-color: rgba(217, 119, 6, 0.58);
+    background: rgba(245, 158, 11, 0.055);
+}
+
+.gired-structure-mapper-vc-search.has-warning .gired-vc-search-count {
+    color: #965b06;
+    font-weight: 600;
+}
+
+@keyframes gired-vc-search-pulse {
+    from { opacity: 0.45; }
+    to { opacity: 1; }
 }
 
 .gired-vc-search-icon {
