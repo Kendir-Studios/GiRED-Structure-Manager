@@ -2,6 +2,24 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.8.0] - 2026-08-20
+
+### Adicionado
+
+- Nova barra de pesquisa na aba `Comentários` do Controlo de Versões, colocada imediatamente antes de `#vc-comments-list`
+- Pesquisa em tempo real em todo o texto de cada `.course-vc-comment-item`
+- Pesquisa sem distinção entre maiúsculas/minúsculas e acentos
+- Suporte para procurar autores, IDs de issues, nomes de atividades, localização, descrição, sugestão, citações e restante texto dos comentários
+- Contador de resultados durante a pesquisa
+- Botão para limpar a pesquisa e suporte à tecla `Esc`
+- Novo `version-comments-search.js`
+
+### Compatibilidade
+
+- A pesquisa funciona em conjunto com os filtros nativos de Severidade, Estado e Equipa
+- A barra e o filtro são reaplicados automaticamente quando o GiRED recria a lista de comentários
+- Ao desligar a extensão, qualquer filtro de pesquisa aplicado aos comentários é removido
+
 ## [1.7.3] - 2026-08-20
 
 ### Alterado
