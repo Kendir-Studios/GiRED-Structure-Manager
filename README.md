@@ -17,6 +17,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
 - Mantém o painel nativo de Controlo de Versões no lado esquerdo do GiRED
 - Faz a página adaptar-se automaticamente à largura do Controlo de Versões, evitando que este tape o conteúdo
+- Adiciona pesquisa rápida aos comentários do Controlo de Versões
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
@@ -100,6 +101,17 @@ A partir da v1.7.3, o Controlo de Versões permanece sempre no lado esquerdo nat
 - quando o painel fecha, a margem esquerda desaparece e a página recupera toda a largura
 - se a Revisão estiver aberta ao mesmo tempo, o Controlo de Versões reserva espaço à esquerda e a Revisão reserva espaço à direita
 
+A partir da v1.8.0, a aba `Comentários` inclui uma barra de pesquisa imediatamente antes da lista:
+
+- pesquisa em tempo real em todo o texto de cada comentário
+- encontra autores, IDs como `#742`, nomes de atividades, localização, descrição, sugestão, citações e restante texto visível
+- não distingue maiúsculas/minúsculas nem acentos
+- vários termos funcionam em conjunto: todos os termos têm de existir no comentário
+- apresenta um contador `resultados/total` enquanto existe pesquisa
+- inclui botão para limpar e suporte à tecla `Esc`
+- funciona em conjunto com os filtros nativos de Severidade, Estado e Equipa
+- se o GiRED recriar a lista de comentários, a barra e a pesquisa são reaplicadas automaticamente
+
 ## Atualizações
 
 Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano e no arranque do browser.
@@ -119,18 +131,18 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-Na v1.7.3, os dois painéis principais adaptam a página sem a tapar: Controlo de Versões à esquerda e Revisão à direita.
+Na v1.8.0, o Controlo de Versões mantém-se à esquerda, adapta a página sem a tapar e passa a ter pesquisa direta na lista de comentários.
 
 ## Versão atual
 
-`1.7.3`
+`1.8.0`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.7.3` -> `1.7.4`): correções e melhorias pequenas
-- `MINOR` (`1.7.x` -> `1.8.0`): novas funcionalidades compatíveis
+- `PATCH` (`1.8.0` -> `1.8.1`): correções e melhorias pequenas
+- `MINOR` (`1.8.x` -> `1.9.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
 ## Uso
