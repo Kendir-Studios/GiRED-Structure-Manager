@@ -1,0 +1,41 @@
+/*
+ * Posicionamento opcional do painel nativo "Controlo de Versões".
+ * O GiRED abre/fecha este painel através da classe `course-vc-open` no body.
+ * Quando a preferência está ativa, o painel é espelhado para o lado direito.
+ */
+html.gired-version-sidebar-right body.course-vc-open #course-vc-sidebar {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(0) !important;
+    border-left: 1px solid rgba(0, 0, 0, 0.12) !important;
+    border-right: 0 !important;
+}
+
+/*
+ * No estado fechado, o painel sai pelo lado direito.
+ * Isto preserva o ciclo nativo abrir/fechar e evita que o painel fique preso visível.
+ */
+html.gired-version-sidebar-right body:not(.course-vc-open) #course-vc-sidebar {
+    left: auto !important;
+    right: 0 !important;
+    transform: translateX(100%) !important;
+}
+
+/* Reserva do lado direito o espaço ocupado pelo painel aberto. */
+html.gired-version-sidebar-right body.course-vc-open {
+    margin-left: 0 !important;
+    margin-right: var(--gired-version-sidebar-width, 580px) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/*
+ * Se a Revisão estiver à esquerda e o Controlo de Versões à direita ao mesmo tempo,
+ * conserva espaço para os dois painéis em vez de um override anular o outro.
+ */
+html.gired-review-sidebar-left.gired-version-sidebar-right body.vc-review-open.course-vc-open {
+    margin-left: var(--gired-review-sidebar-width, 620px) !important;
+    margin-right: var(--gired-version-sidebar-width, 580px) !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
