@@ -4,22 +4,28 @@
     const LEGACY_REVIEW_LEFT_KEY = "giredReviewSidebarLeft";
     const REVIEW_COMMENTS_ONLY_KEY = "giredReviewCommentsOnly";
     const REVIEW_OPEN_ONLY_KEY = "giredReviewOpenOnly";
+    const REVIEW_SEVERITY_AB_ONLY_KEY = "giredReviewSeverityABOnly";
     const COMMENTS_ONLY_CLASS = "gired-review-comments-only";
     const OPEN_ONLY_CLASS = "gired-review-open-only";
-    const OPEN_ONLY_HIDDEN_CLASS = "gired-review-open-filter-hidden";
+    const SEVERITY_AB_ONLY_CLASS = "gired-review-severity-ab-only";
+    const FILTER_HIDDEN_CLASS = "gired-review-open-filter-hidden";
     const LEGACY_LEFT_CLASS = "gired-review-sidebar-left";
     const REVIEW_TOGGLE_SELECTOR = "#vc-review-toggle";
     const REVIEW_CLOSE_SELECTOR = "#vc-review-close";
     const SIDEBAR_SELECTOR = "#vc-review-sidebar";
     const COMMENT_SELECTOR = ".vc-review-comment-item";
     const OPEN_STATUS_SELECTOR = ".vc-review-status-open";
+    const SEVERITY_BADGE_SELECTOR = ".vc-review-severity-badge";
     const OPEN_ONLY_CONTROL_ID = "gired-structure-mapper-review-open-filter";
     const OPEN_ONLY_COUNTER_ID = "gired-structure-mapper-review-open-count";
+    const SEVERITY_AB_CONTROL_ID = "gired-structure-mapper-review-severity-ab-filter";
+    const SEVERITY_AB_COUNTER_ID = "gired-structure-mapper-review-severity-ab-count";
     const WIDTH_VARIABLE = "--gired-review-sidebar-width";
 
     let widthUpdateScheduled = false;
     let panelSyncScheduled = false;
     let openOnlyEnabled = false;
+    let severityAbOnlyEnabled = false;
 
     /** Indica se o painel nativo de Revisão está atualmente aberto. */
     function isReviewOpen() {
@@ -65,6 +71,13 @@
         correctionsTab.click();
     }
 
+    /** Indica se um comentário tem severidade A ou B. */
+    function isSeverityAB(comment) {
+        const badge = comment.querySelector(SEVERITY_BADGE_SELECTOR);
+        const severity = String(badge?.textContent || "").trim().toUpperCase();
+        return severity === "A" || severity === "B";
+    }
+
     /** Atualiza o contador apresentado junto ao filtro de erros abertos. */
     function updateOpenOnlyCounter() {
         const sidebar = document.querySelector(SIDEBAR_SELECTOR);
@@ -83,43 +96,61 @@
         }
     }
 
-    /** Filtra os comentários da Revisão sem alterar o estado nativo de cada erro. */
+    /** Atualiza o contador apresentado junto ao filtro de severidade A/B. */
+    function updateSeverityAbCounter() {
+        const sidebar = document.querySelector(SIDEBAR_SELECTOR);
+        const counter = document.getElementById(SEVERITY_AB_COUNTER_ID);
+        if (!sidebar || !counter) return;
+
+        const comments = Array.from(sidebar.querySelectorAll(COMMENT_SELECTOR));
+        const severityAbCount = comments.filter(isSeverityAB).length;
+        const nextText = comments.length ? `${severityAbCount} A/B` : "Sem erros";
+
+        if (counter.textContent !== nextText) {
+            counter.textContent = nextText;
+        }
+    }
+
+    /** Atualiza os contadores dos dois filtros da Revisão. */
+    function updateFilterCounters() {
+        updateOpenOnlyCounter();
+        updateSeverityAbCounter();
+    }
+
+    /** Filtra os comentários da Revisão combinando estado e severidade sem alterar os dados nativos. */
     function filterReviewComments() {
         const sidebar = document.querySelector(SIDEBAR_SELECTOR);
         if (!sidebar) return;
 
-        const shouldFilter = openOnlyEnabled &&
-            !document.documentElement.classList.contains("gired-structure-mapper-disabled");
+        const extensionEnabled = !document.documentElement.classList.contains("gired-structure-mapper-disabled");
+        const shouldFilterOpen = extensionEnabled && openOnlyEnabled;
+        const shouldFilterSeverity = extensionEnabled && severityAbOnlyEnabled;
 
         sidebar.querySelectorAll(COMMENT_SELECTOR).forEach(comment => {
             const isOpen = comment.querySelector(OPEN_STATUS_SELECTOR) !== null;
-            const shouldHide = shouldFilter && !isOpen;
+            const isAb = isSeverityAB(comment);
+            const shouldHide = (shouldFilterOpen && !isOpen) || (shouldFilterSeverity && !isAb);
 
-            if (comment.classList.contains(OPEN_ONLY_HIDDEN_CLASS) !== shouldHide) {
-                comment.classList.toggle(OPEN_ONLY_HIDDEN_CLASS, shouldHide);
+            if (comment.classList.contains(FILTER_HIDDEN_CLASS) !== shouldHide) {
+                comment.classList.toggle(FILTER_HIDDEN_CLASS, shouldHide);
             }
         });
 
-        updateOpenOnlyCounter();
+        updateFilterCounters();
     }
 
-    /** Cria o toggle "Só erros abertos" no topo do painel nativo de Revisão. */
-    function ensureOpenOnlyControl() {
-        const sidebar = document.querySelector(SIDEBAR_SELECTOR);
-        if (!sidebar) return;
-
-        const existingControl = document.getElementById(OPEN_ONLY_CONTROL_ID);
-        if (existingControl) {
-            const input = existingControl.querySelector("input");
-            if (input instanceof HTMLInputElement && input.checked !== openOnlyEnabled) {
-                input.checked = openOnlyEnabled;
-            }
-            updateOpenOnlyCounter();
-            return;
+    /** Sincroniza o estado visual de um checkbox já existente. */
+    function syncControlCheckbox(controlId, enabled) {
+        const input = document.querySelector(`#${controlId} input`);
+        if (input instanceof HTMLInputElement && input.checked !== enabled) {
+            input.checked = enabled;
         }
+    }
 
+    /** Cria a estrutura visual comum de um toggle de filtro da Revisão. */
+    function createFilterControl({ id, counterId, label, ariaLabel, enabled, storageKey, applyFilter }) {
         const control = document.createElement("div");
-        control.id = OPEN_ONLY_CONTROL_ID;
+        control.id = id;
         control.className = "gired-structure-mapper-review-open-filter";
 
         const copy = document.createElement("div");
@@ -127,21 +158,21 @@
 
         const labelText = document.createElement("span");
         labelText.className = "gired-structure-mapper-review-open-filter__label";
-        labelText.textContent = "Só erros abertos";
+        labelText.textContent = label;
 
         const count = document.createElement("span");
-        count.id = OPEN_ONLY_COUNTER_ID;
+        count.id = counterId;
         count.className = "gired-structure-mapper-review-open-filter__count";
 
         copy.append(labelText, count);
 
         const switchLabel = document.createElement("label");
         switchLabel.className = "gired-structure-mapper-review-open-filter__switch";
-        switchLabel.setAttribute("aria-label", "Mostrar apenas erros abertos");
+        switchLabel.setAttribute("aria-label", ariaLabel);
 
         const input = document.createElement("input");
         input.type = "checkbox";
-        input.checked = openOnlyEnabled;
+        input.checked = enabled;
 
         const track = document.createElement("span");
         track.className = "gired-structure-mapper-review-open-filter__track";
@@ -154,13 +185,38 @@
         control.append(copy, switchLabel);
 
         input.addEventListener("change", async () => {
-            applyOpenOnly(input.checked);
+            applyFilter(input.checked);
 
             try {
-                await chrome.storage.local.set({ [REVIEW_OPEN_ONLY_KEY]: input.checked });
+                await chrome.storage.local.set({ [storageKey]: input.checked });
             } catch (_) {
                 // O filtro continua funcional na sessão mesmo que a preferência não possa ser guardada.
             }
+        });
+
+        return control;
+    }
+
+    /** Cria o toggle "Só erros abertos" no topo do painel nativo de Revisão. */
+    function ensureOpenOnlyControl() {
+        const sidebar = document.querySelector(SIDEBAR_SELECTOR);
+        if (!sidebar) return null;
+
+        const existingControl = document.getElementById(OPEN_ONLY_CONTROL_ID);
+        if (existingControl) {
+            syncControlCheckbox(OPEN_ONLY_CONTROL_ID, openOnlyEnabled);
+            updateOpenOnlyCounter();
+            return existingControl;
+        }
+
+        const control = createFilterControl({
+            id: OPEN_ONLY_CONTROL_ID,
+            counterId: OPEN_ONLY_COUNTER_ID,
+            label: "Só erros abertos",
+            ariaLabel: "Mostrar apenas erros abertos",
+            enabled: openOnlyEnabled,
+            storageKey: REVIEW_OPEN_ONLY_KEY,
+            applyFilter: applyOpenOnly
         });
 
         const header = sidebar.querySelector(".vc-review-header");
@@ -175,6 +231,39 @@
         }
 
         updateOpenOnlyCounter();
+        return control;
+    }
+
+    /** Cria o toggle "Só erros nível A ou B" imediatamente abaixo do filtro de estado. */
+    function ensureSeverityAbControl() {
+        const sidebar = document.querySelector(SIDEBAR_SELECTOR);
+        if (!sidebar) return;
+
+        const existingControl = document.getElementById(SEVERITY_AB_CONTROL_ID);
+        if (existingControl) {
+            syncControlCheckbox(SEVERITY_AB_CONTROL_ID, severityAbOnlyEnabled);
+            updateSeverityAbCounter();
+            return;
+        }
+
+        const control = createFilterControl({
+            id: SEVERITY_AB_CONTROL_ID,
+            counterId: SEVERITY_AB_COUNTER_ID,
+            label: "Só erros nível A ou B",
+            ariaLabel: "Mostrar apenas erros de nível A ou B",
+            enabled: severityAbOnlyEnabled,
+            storageKey: REVIEW_SEVERITY_AB_ONLY_KEY,
+            applyFilter: applySeverityAbOnly
+        });
+
+        const openControl = document.getElementById(OPEN_ONLY_CONTROL_ID) || ensureOpenOnlyControl();
+        if (openControl) {
+            openControl.insertAdjacentElement("afterend", control);
+        } else {
+            sidebar.prepend(control);
+        }
+
+        updateSeverityAbCounter();
     }
 
     /** Aplica o modo compacto sem alterar a posição nativa do painel de Revisão. */
@@ -190,18 +279,22 @@
     function applyOpenOnly(openOnly) {
         openOnlyEnabled = openOnly;
         document.documentElement.classList.toggle(OPEN_ONLY_CLASS, openOnly);
+        syncControlCheckbox(OPEN_ONLY_CONTROL_ID, openOnly);
+        filterReviewComments();
+    }
 
-        const input = document.querySelector(`#${OPEN_ONLY_CONTROL_ID} input`);
-        if (input instanceof HTMLInputElement && input.checked !== openOnly) {
-            input.checked = openOnly;
-        }
-
+    /** Ativa ou desativa o filtro que mantém visíveis apenas os erros de severidade A ou B. */
+    function applySeverityAbOnly(severityAbOnly) {
+        severityAbOnlyEnabled = severityAbOnly;
+        document.documentElement.classList.toggle(SEVERITY_AB_ONLY_CLASS, severityAbOnly);
+        syncControlCheckbox(SEVERITY_AB_CONTROL_ID, severityAbOnly);
         filterReviewComments();
     }
 
     /** Sincroniza a largura, os controlos e os filtros sempre que o painel está disponível. */
     function syncOpenPanel() {
         ensureOpenOnlyControl();
+        ensureSeverityAbControl();
         filterReviewComments();
 
         if (!isReviewOpen()) return;
@@ -242,14 +335,17 @@
         try {
             const result = await chrome.storage.local.get([
                 REVIEW_COMMENTS_ONLY_KEY,
-                REVIEW_OPEN_ONLY_KEY
+                REVIEW_OPEN_ONLY_KEY,
+                REVIEW_SEVERITY_AB_ONLY_KEY
             ]);
 
             applyCommentsOnly(result[REVIEW_COMMENTS_ONLY_KEY] === true);
             applyOpenOnly(result[REVIEW_OPEN_ONLY_KEY] === true);
+            applySeverityAbOnly(result[REVIEW_SEVERITY_AB_ONLY_KEY] === true);
         } catch (_) {
             applyCommentsOnly(false);
             applyOpenOnly(false);
+            applySeverityAbOnly(false);
         }
 
         schedulePanelSync();
@@ -266,6 +362,10 @@
 
             if (changes[REVIEW_OPEN_ONLY_KEY]) {
                 applyOpenOnly(changes[REVIEW_OPEN_ONLY_KEY].newValue === true);
+            }
+
+            if (changes[REVIEW_SEVERITY_AB_ONLY_KEY]) {
+                applySeverityAbOnly(changes[REVIEW_SEVERITY_AB_ONLY_KEY].newValue === true);
             }
         });
     }
