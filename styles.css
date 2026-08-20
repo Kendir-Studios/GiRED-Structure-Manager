@@ -139,6 +139,16 @@ html.gired-structure-mapper-disabled [class*="gired-structure-mapper-"] {
 }
 
 /*
+ * A Revisão mantém a posição nativa do GiRED à direita, mas deixa de funcionar como overlay.
+ * Quando `vc-review-open` está ativo, a página reserva exatamente a largura medida do painel,
+ * permitindo que o conteúdo responsivo se adapte sem ficar tapado.
+ */
+body.vc-review-open {
+    margin-right: var(--gired-review-sidebar-width, 580px) !important;
+    padding-right: 0 !important;
+}
+
+/*
  * Modo opcional "Só lista de correções".
  * A posição do painel de Revisão fica totalmente a cargo do GiRED, no lado direito nativo.
  * O modo só altera o conteúdo enquanto a Revisão está efetivamente aberta.
