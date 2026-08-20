@@ -7,10 +7,42 @@
     const LEGACY_LEFT_CLASS = "gired-review-sidebar-left";
     const REVIEW_TOGGLE_SELECTOR = "#vc-review-toggle";
     const REVIEW_CLOSE_SELECTOR = "#vc-review-close";
+    const SIDEBAR_SELECTOR = "#vc-review-sidebar";
+    const WIDTH_VARIABLE = "--gired-review-sidebar-width";
+
+    let widthUpdateScheduled = false;
 
     /** Indica se o painel nativo de Revisão está atualmente aberto. */
     function isReviewOpen() {
         return document.body?.classList.contains("vc-review-open") === true;
+    }
+
+    /**
+     * Mede a largura real do painel nativo e guarda-a numa variável CSS.
+     * A página usa esta largura para reservar espaço à direita enquanto a Revisão está aberta.
+     */
+    function updateReviewSidebarWidth() {
+        const sidebar = document.querySelector(SIDEBAR_SELECTOR);
+        if (!sidebar) return;
+
+        const rectWidth = sidebar.getBoundingClientRect().width;
+        const computedWidth = Number.parseFloat(window.getComputedStyle(sidebar).width) || 0;
+        const width = rectWidth || computedWidth;
+
+        if (width > 0) {
+            document.documentElement.style.setProperty(WIDTH_VARIABLE, `${Math.round(width)}px`);
+        }
+    }
+
+    /** Agenda a medição para o próximo frame, evitando cálculos repetidos. */
+    function scheduleWidthUpdate() {
+        if (widthUpdateScheduled) return;
+        widthUpdateScheduled = true;
+
+        window.requestAnimationFrame(() => {
+            widthUpdateScheduled = false;
+            updateReviewSidebarWidth();
+        });
     }
 
     /**
@@ -32,21 +64,23 @@
         }
     }
 
-    /** Sincroniza o modo compacto sempre que o painel nativo é aberto. */
+    /** Sincroniza a largura e o modo compacto sempre que o painel nativo está aberto. */
     function syncOpenPanel() {
         if (!isReviewOpen()) return;
-        if (!document.documentElement.classList.contains(COMMENTS_ONLY_CLASS)) return;
 
-        window.requestAnimationFrame(ensureCorrectionsTabActive);
+        scheduleWidthUpdate();
+
+        if (document.documentElement.classList.contains(COMMENTS_ONLY_CLASS)) {
+            window.requestAnimationFrame(ensureCorrectionsTabActive);
+        }
     }
 
     /**
-     * Remove a antiga preferência de mover a Revisão para a esquerda.
-     * A partir desta versão, a Revisão fica sempre no lado direito nativo do GiRED.
+     * Remove apenas a antiga preferência/classe de mover a Revisão para a esquerda.
+     * A variável de largura deixa de ser removida porque agora é usada para adaptar a página à direita.
      */
     async function removeLegacyLeftPreference() {
         document.documentElement.classList.remove(LEGACY_LEFT_CLASS);
-        document.documentElement.style.removeProperty("--gired-review-sidebar-width");
 
         try {
             await chrome.storage.local.remove(LEGACY_REVIEW_LEFT_KEY);
@@ -65,6 +99,8 @@
         } catch (_) {
             applyCommentsOnly(false);
         }
+
+        syncOpenPanel();
     }
 
     /** Atualiza imediatamente a página quando a preferência é alterada no popup. */
@@ -76,8 +112,8 @@
     }
 
     /**
-     * O painel pode ser inserido dinamicamente. O observer garante que a aba Correções
-     * permanece ativa quando o modo compacto está ligado.
+     * O painel pode ser inserido dinamicamente. O observer recalcula a largura e mantém
+     * a aba Correções ativa quando necessário.
      */
     const domObserver = new MutationObserver(() => {
         syncOpenPanel();
@@ -90,7 +126,7 @@
 
     /**
      * O GiRED abre e fecha a Revisão através da classe `vc-review-open` no body.
-     * Observamos apenas esse estado; a posição continua totalmente controlada pelo GiRED.
+     * Quando abre, medimos o painel e a página passa automaticamente a reservar esse espaço.
      */
     if (document.body) {
         const bodyObserver = new MutationObserver(() => {
@@ -112,6 +148,13 @@
 
         window.requestAnimationFrame(syncOpenPanel);
     }, true);
+
+    /** Mantém a reserva de espaço correta se a janela ou o painel mudarem de largura. */
+    window.addEventListener("resize", () => {
+        if (isReviewOpen()) {
+            scheduleWidthUpdate();
+        }
+    }, { passive: true });
 
     void loadReviewPreferences();
 })();
