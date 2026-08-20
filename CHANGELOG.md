@@ -2,6 +2,16 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.7.2] - 2026-08-20
+
+### Corrigido
+
+- A Revisão continua no lado direito nativo, mas deixa de tapar o conteúdo da página
+- A extensão mede automaticamente a largura real de `#vc-review-sidebar` quando o painel abre
+- Enquanto `vc-review-open` está ativo, a página reserva essa largura à direita e o conteúdo responsivo adapta-se ao espaço disponível
+- Ao fechar a Revisão, a margem deixa de ser aplicada automaticamente e a página recupera toda a largura
+- Se Revisão e Controlo de Versões estiverem abertos simultaneamente à direita, os painéis ficam lado a lado e a página reserva a soma das duas larguras
+
 ## [1.7.1] - 2026-08-20
 
 ### Alterado
