@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "GiRED Structure Mapper",
-  "version": "1.7.3",
+  "version": "1.8.0",
   "description": "Adiciona numeração SA/AT ao GiRED e mantém o contexto da atividade durante a navegação e entre tabs.",
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAqTeCQHzkhHUJv4xcz51JilYKPNjgHa4xbG5S1DyIqXcmLQsBC1XQn+t9SEkMUKMQgRV6yOuoheDlrjg057eO+oXSkLp32UDFsqwL+9+6dUf7jKG01gI0KwRzqV5ZKcU65DsxXaFsAj8r2E5E3ItQYUjrQ87Mzj1rPhw/ebQhgMmXBmtuLADyahY5iOoZytYo/n3/fq0Jh9KYDMDPBXc8Q/P5Lm71mFe9dPAnc4GTkmpUzHdhAXsSijHpE016qf8UtsA4dpfKg7lWw/w3uNBjMTq0kqdFJZ4tBu3cOHXq/TD2ptro6LEag9YZr7V8q2ig2S4LExXg8/hz5KNfTJapNwIDAQAB",
   "permissions": ["storage", "nativeMessaging", "alarms"],
@@ -14,7 +14,7 @@
   },
   "content_scripts": [{
     "matches": ["https://apps.gired.pt/*", "https://cms.gired.pt/*"],
-    "js": ["toggle-control.js", "review-sidebar-control.js", "version-sidebar-control.js", "content.js", "cms-dropdowns.js"],
+    "js": ["toggle-control.js", "review-sidebar-control.js", "version-sidebar-control.js", "version-comments-search.js", "content.js", "cms-dropdowns.js"],
     "css": ["styles.css", "version-sidebar.css"],
     "run_at": "document_idle"
   }]
