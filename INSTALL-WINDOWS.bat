@@ -1,9 +1,9 @@
 @echo off
 setlocal
-title GiRED Structure Mapper - Instalacao
+title GiRED Fixer - Instalacao
 
 echo ==========================================
-echo   GiRED Structure Mapper - Instalacao
+echo   GiRED Fixer - Instalacao
 echo ==========================================
 echo.
 
