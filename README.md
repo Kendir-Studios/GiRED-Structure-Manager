@@ -14,8 +14,9 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Pode ser ligada/desligada diretamente no popup
 - Permite escolher se o painel nativo de Revisão do GiRED aparece à esquerda ou à direita
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
-- Respeita o botão nativo `Revisão`: o painel continua fechado até o utilizador o abrir
-- As preferências da Revisão ficam guardadas e são aplicadas quando o painel é aberto
+- Permite escolher se o painel nativo de Controlo de Versões aparece à direita ou mantém o lado esquerdo original
+- Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
+- As preferências dos painéis ficam guardadas e são aplicadas imediatamente
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
 - Popup compacto com interface visual própria para o mapper
@@ -66,7 +67,7 @@ A partir da v1.5.0, o popup inclui a opção `Revisão do lado esquerdo`.
 
 - Ativa: quando o utilizador abre a Revisão, o painel aparece do lado esquerdo
 - Desativada: mantém o comportamento original do GiRED, com o painel do lado direito
-- O botão nativo `Revisão` continua do lado direito e é o responsável por abrir/fechar o painel
+- O botão nativo `Revisão` continua responsável por abrir/fechar o painel
 - A preferência fica guardada em `chrome.storage.local`
 
 Por omissão, numa instalação nova, o painel é apresentado à esquerda quando é aberto.
@@ -79,9 +80,17 @@ A partir da v1.6.0 existe também a opção `Só lista de correções`.
 - Desativada: o painel volta ao modo completo do GiRED
 - Esta opção vem desativada por omissão
 
-A v1.6.1 melhora a deteção do estado aberto/fechado do painel. A extensão observa a classe `vc-review-open` aplicada pelo próprio GiRED e reaplica as preferências sempre que o botão nativo abre a Revisão, sem forçar o painel a ficar permanentemente visível.
+## Controlo de Versões
 
-A v1.6.2 corrige o fecho através do botão `X`: os estilos que movem o painel para a esquerda só são aplicados enquanto a Revisão está efetivamente aberta. Quando o GiRED remove `vc-review-open`, o painel volta aos estilos nativos de fecho e sai corretamente do viewport.
+A partir da v1.7.0, o popup inclui a opção `Controlo de Versões à direita`.
+
+- Ativa: quando o utilizador abre o Controlo de Versões, o painel aparece do lado direito
+- Desativada: mantém o comportamento original do GiRED, com o painel do lado esquerdo
+- A extensão acompanha a classe nativa `course-vc-open` e não força o painel a ficar aberto
+- O botão e o `X` nativos continuam responsáveis pela abertura e fecho
+- A largura é detetada automaticamente para reservar espaço no lado correto
+- Se a Revisão estiver aberta à esquerda ao mesmo tempo, a página reserva espaço para os dois painéis
+- Por omissão, numa instalação nova, o Controlo de Versões abre à direita
 
 ## Atualizações
 
@@ -102,18 +111,18 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-A v1.6.2 mantém as preferências introduzidas nas versões anteriores e corrige o ciclo completo de abrir/fechar o painel quando este está do lado esquerdo.
+A v1.7.0 acrescenta controlo independente do lado dos dois painéis principais: Revisão pode ficar à esquerda e Controlo de Versões à direita.
 
 ## Versão atual
 
-`1.6.2`
+`1.7.0`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.6.1` -> `1.6.2`): correções e melhorias pequenas
-- `MINOR` (`1.6.x` -> `1.7.0`): novas funcionalidades compatíveis
+- `PATCH` (`1.7.0` -> `1.7.1`): correções e melhorias pequenas
+- `MINOR` (`1.7.x` -> `1.8.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
 ## Uso
