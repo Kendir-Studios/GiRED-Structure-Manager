@@ -18,6 +18,7 @@
     const WIDTH_VARIABLE = "--gired-review-sidebar-width";
 
     let widthUpdateScheduled = false;
+    let panelSyncScheduled = false;
     let openOnlyEnabled = false;
 
     /** Indica se o painel nativo de Revisão está atualmente aberto. */
@@ -38,7 +39,10 @@
         const width = rectWidth || computedWidth;
 
         if (width > 0) {
-            document.documentElement.style.setProperty(WIDTH_VARIABLE, `${Math.round(width)}px`);
+            const nextValue = `${Math.round(width)}px`;
+            if (document.documentElement.style.getPropertyValue(WIDTH_VARIABLE) !== nextValue) {
+                document.documentElement.style.setProperty(WIDTH_VARIABLE, nextValue);
+            }
         }
     }
 
@@ -53,9 +57,7 @@
         });
     }
 
-    /**
-     * Garante que a aba de Correções está ativa quando o modo de apenas comentários é usado.
-     */
+    /** Garante que a aba de Correções está ativa quando o modo de apenas comentários é usado. */
     function ensureCorrectionsTabActive() {
         const correctionsTab = document.querySelector('.vc-review-tab[data-tab="corrections"]');
         if (!correctionsTab || correctionsTab.classList.contains("active")) return;
@@ -71,10 +73,14 @@
 
         const comments = Array.from(sidebar.querySelectorAll(COMMENT_SELECTOR));
         const openCount = comments.filter(comment => comment.querySelector(OPEN_STATUS_SELECTOR)).length;
-
-        counter.textContent = comments.length
+        const nextText = comments.length
             ? `${openCount} aberto${openCount === 1 ? "" : "s"}`
             : "Sem erros";
+
+        // Evita recriar o text node em cada MutationObserver e entrar num ciclo infinito.
+        if (counter.textContent !== nextText) {
+            counter.textContent = nextText;
+        }
     }
 
     /** Filtra os comentários da Revisão sem alterar o estado nativo de cada erro. */
@@ -87,7 +93,11 @@
 
         sidebar.querySelectorAll(COMMENT_SELECTOR).forEach(comment => {
             const isOpen = comment.querySelector(OPEN_STATUS_SELECTOR) !== null;
-            comment.classList.toggle(OPEN_ONLY_HIDDEN_CLASS, shouldFilter && !isOpen);
+            const shouldHide = shouldFilter && !isOpen;
+
+            if (comment.classList.contains(OPEN_ONLY_HIDDEN_CLASS) !== shouldHide) {
+                comment.classList.toggle(OPEN_ONLY_HIDDEN_CLASS, shouldHide);
+            }
         });
 
         updateOpenOnlyCounter();
@@ -101,7 +111,7 @@
         const existingControl = document.getElementById(OPEN_ONLY_CONTROL_ID);
         if (existingControl) {
             const input = existingControl.querySelector("input");
-            if (input instanceof HTMLInputElement) {
+            if (input instanceof HTMLInputElement && input.checked !== openOnlyEnabled) {
                 input.checked = openOnlyEnabled;
             }
             updateOpenOnlyCounter();
@@ -182,7 +192,7 @@
         document.documentElement.classList.toggle(OPEN_ONLY_CLASS, openOnly);
 
         const input = document.querySelector(`#${OPEN_ONLY_CONTROL_ID} input`);
-        if (input instanceof HTMLInputElement) {
+        if (input instanceof HTMLInputElement && input.checked !== openOnly) {
             input.checked = openOnly;
         }
 
@@ -203,10 +213,18 @@
         }
     }
 
-    /**
-     * Remove apenas a antiga preferência/classe de mover a Revisão para a esquerda.
-     * A variável de largura deixa de ser removida porque agora é usada para adaptar a página à direita.
-     */
+    /** Agenda uma única sincronização por frame para não bloquear o GiRED durante alterações grandes do DOM. */
+    function schedulePanelSync() {
+        if (panelSyncScheduled) return;
+        panelSyncScheduled = true;
+
+        window.requestAnimationFrame(() => {
+            panelSyncScheduled = false;
+            syncOpenPanel();
+        });
+    }
+
+    /** Remove apenas a antiga preferência/classe de mover a Revisão para a esquerda. */
     async function removeLegacyLeftPreference() {
         document.documentElement.classList.remove(LEGACY_LEFT_CLASS);
 
@@ -234,7 +252,7 @@
             applyOpenOnly(false);
         }
 
-        syncOpenPanel();
+        schedulePanelSync();
     }
 
     /** Atualiza imediatamente a página quando uma preferência é alterada. */
@@ -253,11 +271,11 @@
     }
 
     /**
-     * O painel e os comentários podem ser inseridos dinamicamente. O observer recalcula a largura,
-     * reinsere o toggle quando necessário e reaplica o filtro aos novos erros.
+     * O painel e os comentários podem ser inseridos dinamicamente.
+     * A sincronização é agrupada por frame para não criar ciclos de MutationObserver.
      */
     const domObserver = new MutationObserver(() => {
-        syncOpenPanel();
+        schedulePanelSync();
     });
 
     domObserver.observe(document.documentElement, {
@@ -265,13 +283,10 @@
         subtree: true
     });
 
-    /**
-     * O GiRED abre e fecha a Revisão através da classe `vc-review-open` no body.
-     * Quando abre, medimos o painel e a página passa automaticamente a reservar esse espaço.
-     */
+    /** Acompanha a abertura/fecho nativos da Revisão. */
     if (document.body) {
         const bodyObserver = new MutationObserver(() => {
-            syncOpenPanel();
+            schedulePanelSync();
         });
 
         bodyObserver.observe(document.body, {
@@ -280,18 +295,18 @@
         });
     }
 
-    /** Sincroniza novamente após utilizar os controlos nativos de abrir/fechar ou alterar um erro. */
+    /** Sincroniza novamente após utilizar os controlos nativos ou alterar um erro. */
     document.addEventListener("click", event => {
         const target = event.target instanceof Element ? event.target : null;
         if (!target) return;
 
         if (target.closest(`${REVIEW_TOGGLE_SELECTOR}, ${REVIEW_CLOSE_SELECTOR}`)) {
-            window.requestAnimationFrame(syncOpenPanel);
+            schedulePanelSync();
             return;
         }
 
         if (target.closest(`${SIDEBAR_SELECTOR} button`)) {
-            window.setTimeout(filterReviewComments, 120);
+            window.setTimeout(schedulePanelSync, 120);
         }
     }, true);
 
