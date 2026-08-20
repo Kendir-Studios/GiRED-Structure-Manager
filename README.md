@@ -19,7 +19,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o painel nativo de Controlo de Versões no lado esquerdo do GiRED
 - Faz a página adaptar-se automaticamente à largura do Controlo de Versões, evitando que este tape o conteúdo
 - Adiciona pesquisa rápida aos comentários do Controlo de Versões
-- Mostra uma pill `SA / AT` em cada comentário cuja localização tenha os quatro níveis esperados
+- Mostra uma pill numérica como `SA01/AT05` em cada comentário cuja localização possa ser mapeada para a estrutura
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
@@ -121,14 +121,16 @@ A partir da v1.8.0, a aba `Comentários` inclui uma barra de pesquisa imediatame
 - funciona em conjunto com os filtros nativos de Severidade, Estado e Equipa
 - se o GiRED recriar a lista de comentários, a barra e a pesquisa são reaplicadas automaticamente
 
-A partir da v1.8.1, os comentários passam também a apresentar uma pill de localização simplificada:
+A partir da v1.8.3, as pills de localização usam os códigos reais da estrutura:
 
-- lê `.course-vc-comment-location`
-- interpreta a estrutura como `ignorar > ignorar > SA > AT`
-- mostra apenas `SA / AT` imediatamente acima da localização completa
-- a localização original continua visível
-- entradas sem os quatro níveis, como `Unidade Atual`, não recebem pill
-- as pills são reaplicadas automaticamente quando o GiRED recria a lista
+- lê `.course-vc-comment-location` no formato `ignorar > ignorar > SA > AT`
+- usa o mapa de rotas partilhado do Structure Mapper para converter os nomes em códigos
+- usa também o outline atual do curso como fonte adicional de mapeamento
+- apresenta o formato compacto `SA01/AT05`
+- a primeira unidade de cada SA aparece como `SA01/INTROD`
+- a localização completa original continua visível por baixo
+- se não for possível confirmar o código da estrutura, não inventa numeração
+- as pills são reaplicadas automaticamente quando o GiRED recria a lista ou quando o mapa da estrutura é atualizado
 
 ## Atualizações
 
@@ -149,17 +151,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-Na v1.8.2, a lista de erros da Revisão passa a distinguir imediatamente erros abertos e resolvidos através de fundos suaves laranja e verde.
+Na v1.8.3, a localização dos comentários passa a mostrar diretamente códigos como `SA01/AT05`, em vez dos nomes longos da SA e da AT.
 
 ## Versão atual
 
-`1.8.2`
+`1.8.3`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.8.2` -> `1.8.3`): correções e melhorias pequenas
+- `PATCH` (`1.8.3` -> `1.8.4`): correções e melhorias pequenas
 - `MINOR` (`1.8.x` -> `1.9.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
