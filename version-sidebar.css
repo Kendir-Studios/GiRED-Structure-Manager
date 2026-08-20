@@ -28,3 +28,18 @@ html.gired-version-sidebar-right body.course-vc-open {
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
+
+/*
+ * Se a Revisão e o Controlo de Versões estiverem abertos ao mesmo tempo no lado direito,
+ * coloca os dois painéis lado a lado e reserva a soma das respetivas larguras.
+ */
+html.gired-version-sidebar-right body.vc-review-open.course-vc-open #course-vc-sidebar {
+    right: var(--gired-review-sidebar-width, 580px) !important;
+}
+
+html.gired-version-sidebar-right body.vc-review-open.course-vc-open {
+    margin-right: calc(
+        var(--gired-review-sidebar-width, 580px) +
+        var(--gired-version-sidebar-width, 580px)
+    ) !important;
+}
