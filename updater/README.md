@@ -1,6 +1,6 @@
 # Atualizador automático
 
-O GiRED Structure Manager pode verificar o repositório e fazer `Pull` diretamente a partir do popup através de Native Messaging.
+O GiRED Fixer pode verificar o repositório e fazer `Pull` diretamente a partir do popup através de Native Messaging.
 
 Desde a versão `1.4.1`, o ID da extensão é fixo (`mackaaceiagpmapjgllmecpodnnhpcdm`), por isso já não é necessário copiar nem colar o ID durante a instalação.
 
