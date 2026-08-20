@@ -112,3 +112,27 @@ body.course-vc-open.vc-review-open {
 #course-vc-sidebar .course-vc-comment-item.gired-vc-search-hidden {
     display: none !important;
 }
+
+/*
+ * Pill compacta com a localização útil do erro.
+ * Os dois primeiros níveis são ignorados e mostramos apenas SA / AT.
+ */
+.gired-structure-mapper-vc-location-pill {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    box-sizing: border-box;
+    margin: 3px 0 5px;
+    padding: 3px 7px;
+    overflow: hidden;
+    border: 1px solid rgba(0, 104, 141, 0.20);
+    border-radius: 999px;
+    background: rgba(0, 104, 141, 0.06);
+    color: #00688d;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align: middle;
+}
