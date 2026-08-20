@@ -93,6 +93,11 @@ body.course-vc-open.vc-review-open {
     line-height: 1;
 }
 
+.gired-vc-search-clear[hidden],
+.gired-vc-search-count[hidden] {
+    display: none !important;
+}
+
 .gired-vc-search-clear:hover {
     background: #f0f3f5;
     color: #26343d;
