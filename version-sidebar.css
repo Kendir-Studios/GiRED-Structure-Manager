@@ -136,3 +136,85 @@ body.course-vc-open.vc-review-open {
     white-space: nowrap;
     vertical-align: middle;
 }
+
+/*
+ * Cards dos erros no Controlo de Versões.
+ * Replica a linguagem visual usada na Revisão: fundo neutro, barra lateral de estado
+ * e espaço interno suficiente para separar cabeçalho, localização, conteúdo e ações.
+ */
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-item {
+    box-sizing: border-box;
+    margin: 10px 10px 12px !important;
+    padding: 14px 14px 12px !important;
+    border: 1px solid rgba(15, 23, 42, 0.11) !important;
+    border-radius: 7px !important;
+    background: #ffffff !important;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    overflow: hidden;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-item:has(.course-vc-status-open) {
+    border-left: 4px solid rgba(217, 119, 6, 0.78) !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-item.course-vc-comment-resolved,
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-item:has(.course-vc-status-resolved) {
+    border-left: 4px solid rgba(22, 163, 74, 0.72) !important;
+}
+
+/* O badge de estado transporta a cor; o resto do comentário mantém-se branco e legível. */
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-status-open {
+    border: 1px solid rgba(217, 119, 6, 0.22) !important;
+    background: rgba(245, 158, 11, 0.13) !important;
+    color: #965b06 !important;
+    font-weight: 600 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-status-resolved {
+    border: 1px solid rgba(22, 163, 74, 0.20) !important;
+    background: rgba(34, 197, 94, 0.11) !important;
+    color: #16733a !important;
+    font-weight: 600 !important;
+}
+
+/* Ritmo vertical consistente dentro de cada card. */
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-header {
+    margin-bottom: 7px !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-badges {
+    margin-bottom: 9px !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-unit-link {
+    margin-bottom: 6px !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-location {
+    margin: 0 0 9px !important;
+    line-height: 1.45 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-content {
+    margin: 0 0 10px !important;
+    line-height: 1.5 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-suggestion,
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-reason,
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-quote {
+    box-sizing: border-box;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+    padding: 9px 10px !important;
+    border-radius: 4px;
+    line-height: 1.45 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) #course-vc-sidebar .course-vc-comment-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 10px !important;
+    padding-top: 2px;
+}
