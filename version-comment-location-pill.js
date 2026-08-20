@@ -4,6 +4,7 @@
     const SIDEBAR_SELECTOR = "#course-vc-sidebar";
     const COMMENT_SELECTOR = ".course-vc-comment-item";
     const LOCATION_SELECTOR = ".course-vc-comment-location";
+    const UNIT_LINK_SELECTOR = ".course-vc-comment-unit-link a[href]";
     const PILL_CLASS = "gired-structure-mapper-vc-location-pill";
     const ROUTE_MAP_KEY = "giredStructureMapperRoutesV2";
     const OUTLINE_SELECTOR = "#outline-sidebar-outline";
@@ -11,9 +12,6 @@
     const SUBSECTIONS_SELECTOR = '[data-testid="section-card__subsections"]';
     const SUBSECTION_SELECTOR = '[data-testid="subsection-card"]';
     const SUBSECTION_TITLE_SELECTOR = ".subsection-card-title";
-    const UNITS_SELECTOR = '[data-testid="subsection-card__units"]';
-    const UNIT_SELECTOR = '[data-testid="unit-card"]';
-    const UNIT_TITLE_SELECTOR = ".unit-card-title";
 
     let updateScheduled = false;
 
@@ -54,15 +52,6 @@
             .filter(subsection => subsection.closest(SUBSECTIONS_SELECTOR) === container);
     }
 
-    /** Obtém apenas as ATs diretamente pertencentes à SA indicada. */
-    function getUnits(subsection) {
-        const unitsContainer = subsection.querySelector(UNITS_SELECTOR);
-        if (!unitsContainer) return [];
-
-        return Array.from(unitsContainer.querySelectorAll(UNIT_SELECTOR))
-            .filter(unit => unit.closest(SUBSECTION_SELECTOR) === subsection);
-    }
-
     /**
      * Extrai os nomes da SA e da AT da localização apresentada pelo GiRED.
      * A estrutura esperada é: ignorar > ignorar > SA > AT.
@@ -83,26 +72,17 @@
     }
 
     /**
-     * Constrói o mapa diretamente a partir da Estrutura do recurso.
-     * Esta é a fonte principal no ecrã de authoring porque contém todas as SAs e ATs
-     * e usa exatamente a mesma numeração do Structure Mapper.
+     * Mapeia o nome de cada SA para o respetivo número usando diretamente a Estrutura do recurso.
+     * Funciona mesmo com as SAs fechadas, porque os títulos continuam presentes no DOM.
      */
-    function buildAuthoringStructureCodeMap() {
+    function buildAuthoringSaMap() {
         const map = new Map();
 
         document.querySelectorAll(SUBSECTIONS_SELECTOR).forEach(container => {
             getSubsections(container).forEach((subsection, saIndex) => {
                 const saName = subsection.querySelector(SUBSECTION_TITLE_SELECTOR)?.textContent?.trim();
                 if (!saName) return;
-
-                getUnits(subsection).forEach((unit, atIndex) => {
-                    const atName = unit.querySelector(UNIT_TITLE_SELECTOR)?.textContent?.trim();
-                    if (!atName) return;
-
-                    const saCode = `SA${formatNumber(saIndex + 1)}`;
-                    const atCode = atIndex === 0 ? "INTROD" : `AT${formatNumber(atIndex)}`;
-                    map.set(createNameKey(saName, atName), `${saCode}/${atCode}`);
-                });
+                map.set(normalizeText(saName), `SA${formatNumber(saIndex + 1)}`);
             });
         });
 
@@ -110,8 +90,44 @@
     }
 
     /**
+     * Lê o próprio block ID do link do erro.
+     * O GiRED codifica a posição da atividade no href:
+     * - `...block@vertical16` -> INTROD da SA de índice 16
+     * - `...block@vert_0_6_1_...` -> SA de índice 6, AT de índice 1 (AT02)
+     */
+    function getCodesFromCommentLink(comment, names, saMap) {
+        const link = comment.querySelector(UNIT_LINK_SELECTOR);
+        const href = link?.href || link?.getAttribute("href") || "";
+        if (!href) return null;
+
+        const introMatch = href.match(/type@vertical\+block@vertical(\d+)(?:$|[/?#])/i);
+        const atMatch = href.match(/type@vertical\+block@vert_0_(\d+)_(\d+)(?:_|$|[/?#])/i);
+
+        let saIndex = null;
+        let atCode = "";
+
+        if (introMatch) {
+            saIndex = Number.parseInt(introMatch[1], 10);
+            atCode = "INTROD";
+        } else if (atMatch) {
+            saIndex = Number.parseInt(atMatch[1], 10);
+            const atIndex = Number.parseInt(atMatch[2], 10);
+            if (Number.isFinite(atIndex)) atCode = `AT${formatNumber(atIndex + 1)}`;
+        }
+
+        if (!atCode) return null;
+
+        let saCode = saMap.get(normalizeText(names.saName)) || "";
+        if (!saCode && Number.isFinite(saIndex)) {
+            saCode = `SA${formatNumber(saIndex + 1)}`;
+        }
+
+        return saCode ? `${saCode}/${atCode}` : null;
+    }
+
+    /**
      * Constrói códigos diretamente a partir do outline da página do aluno.
-     * Serve de fallback quando a Estrutura do recurso não está presente no DOM.
+     * Serve de fallback fora da Estrutura do recurso.
      */
     function buildOutlineCodeMap() {
         const map = new Map();
@@ -141,11 +157,7 @@
         return map;
     }
 
-    /**
-     * Lê o mapa já criado pelo Structure Mapper quando a estrutura do curso foi indexada.
-     * A assinatura do curso é comparada também com URLs CMS `block-v1:...`, que não
-     * contêm literalmente o prefixo `course-v1:`.
-     */
+    /** Lê o mapa persistente já criado pelo Structure Mapper. */
     async function buildStoredCodeMap() {
         const map = new Map();
 
@@ -170,22 +182,16 @@
         return map;
     }
 
-    /**
-     * Junta todas as fontes disponíveis. A estrutura visível tem prioridade sobre dados
-     * persistidos porque representa sempre o estado atual do recurso.
-     */
-    async function buildCodeMap() {
+    /** Junta os fallbacks por nome disponíveis. */
+    async function buildFallbackCodeMap() {
         const map = await buildStoredCodeMap();
         const outlineMap = buildOutlineCodeMap();
-        const authoringMap = buildAuthoringStructureCodeMap();
-
         outlineMap.forEach((value, key) => map.set(key, value));
-        authoringMap.forEach((value, key) => map.set(key, value));
         return map;
     }
 
     /** Cria ou atualiza a pill numérica de localização de um comentário. */
-    function updateCommentPill(comment, codeMap) {
+    function updateCommentPill(comment, saMap, fallbackCodeMap) {
         const location = comment.querySelector(LOCATION_SELECTOR);
         const existingPill = comment.querySelector(`.${PILL_CLASS}`);
 
@@ -200,7 +206,10 @@
             return;
         }
 
-        const label = codeMap.get(createNameKey(names.saName, names.atName));
+        const directLabel = getCodesFromCommentLink(comment, names, saMap);
+        const fallbackLabel = fallbackCodeMap.get(createNameKey(names.saName, names.atName));
+        const label = directLabel || fallbackLabel;
+
         if (!label) {
             existingPill?.remove();
             return;
@@ -230,10 +239,12 @@
     /** Atualiza todas as pills atualmente presentes no painel. */
     async function updateAllPills() {
         updateScheduled = false;
-        const codeMap = await buildCodeMap();
+
+        const saMap = buildAuthoringSaMap();
+        const fallbackCodeMap = await buildFallbackCodeMap();
 
         document.querySelectorAll(`${SIDEBAR_SELECTOR} ${COMMENT_SELECTOR}`)
-            .forEach(comment => updateCommentPill(comment, codeMap));
+            .forEach(comment => updateCommentPill(comment, saMap, fallbackCodeMap));
     }
 
     /** Agenda uma atualização para evitar várias passagens no mesmo ciclo do DOM. */
@@ -243,10 +254,7 @@
         window.requestAnimationFrame(() => void updateAllPills());
     }
 
-    /**
-     * O GiRED recria a lista de comentários e a estrutura dinamicamente.
-     * Observamos essas alterações para recalcular os códigos assim que os elementos existirem.
-     */
+    /** O GiRED recria comentários e estrutura dinamicamente; reaplicamos quando isso acontece. */
     const observer = new MutationObserver(scheduleUpdate);
 
     observer.observe(document.documentElement, {
