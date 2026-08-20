@@ -1,45 +1,21 @@
 /*
- * Posicionamento opcional do painel nativo "Controlo de Versões".
- * O GiRED abre/fecha este painel através da classe `course-vc-open` no body.
- * Quando a preferência está ativa, o painel é espelhado para o lado direito.
+ * O Controlo de Versões mantém a posição nativa do GiRED no lado esquerdo,
+ * mas deixa de funcionar como overlay sobre o conteúdo da página.
+ * Enquanto `course-vc-open` estiver ativo, a página reserva exatamente a largura
+ * medida de `#course-vc-sidebar`, permitindo que o layout responsivo se adapte.
  */
-html.gired-version-sidebar-right body.course-vc-open #course-vc-sidebar {
-    left: auto !important;
-    right: 0 !important;
-    transform: translateX(0) !important;
-    border-left: 1px solid rgba(0, 0, 0, 0.12) !important;
-    border-right: 0 !important;
+body.course-vc-open {
+    margin-left: var(--gired-version-sidebar-width, 580px) !important;
+    padding-left: 0 !important;
 }
 
 /*
- * No estado fechado, o painel sai pelo lado direito.
- * Isto preserva o ciclo nativo abrir/fechar e evita que o painel fique preso visível.
+ * Se a Revisão estiver aberta à direita ao mesmo tempo, cada painel reserva o seu
+ * próprio lado: Controlo de Versões à esquerda e Revisão à direita.
  */
-html.gired-version-sidebar-right body:not(.course-vc-open) #course-vc-sidebar {
-    left: auto !important;
-    right: 0 !important;
-    transform: translateX(100%) !important;
-}
-
-/* Reserva do lado direito o espaço ocupado pelo painel aberto. */
-html.gired-version-sidebar-right body.course-vc-open {
-    margin-left: 0 !important;
-    margin-right: var(--gired-version-sidebar-width, 580px) !important;
+body.course-vc-open.vc-review-open {
+    margin-left: var(--gired-version-sidebar-width, 580px) !important;
+    margin-right: var(--gired-review-sidebar-width, 580px) !important;
     padding-left: 0 !important;
     padding-right: 0 !important;
-}
-
-/*
- * Se a Revisão e o Controlo de Versões estiverem abertos ao mesmo tempo no lado direito,
- * coloca os dois painéis lado a lado e reserva a soma das respetivas larguras.
- */
-html.gired-version-sidebar-right body.vc-review-open.course-vc-open #course-vc-sidebar {
-    right: var(--gired-review-sidebar-width, 580px) !important;
-}
-
-html.gired-version-sidebar-right body.vc-review-open.course-vc-open {
-    margin-right: calc(
-        var(--gired-review-sidebar-width, 580px) +
-        var(--gired-version-sidebar-width, 580px)
-    ) !important;
 }
