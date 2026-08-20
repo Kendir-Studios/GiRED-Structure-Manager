@@ -13,6 +13,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Suporta `apps.gired.pt` e `cms.gired.pt`
 - Pode ser ligada/desligada diretamente no popup
 - Mantém o painel nativo de Revisão no lado direito do GiRED
+- Faz a página adaptar-se automaticamente à largura do painel de Revisão, evitando que este tape o conteúdo
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
 - Permite escolher se o painel nativo de Controlo de Versões aparece à direita ou mantém o lado esquerdo original
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
@@ -71,6 +72,13 @@ A partir da v1.7.1, o painel de Revisão permanece no lado direito nativo do GiR
 - A antiga preferência `Revisão do lado esquerdo` foi removida
 - A antiga chave `giredReviewSidebarLeft` é limpa automaticamente
 
+A partir da v1.7.2, a Revisão deixa de funcionar visualmente como um overlay sobre o conteúdo:
+
+- quando o painel abre, a extensão mede a largura real de `#vc-review-sidebar`
+- enquanto `vc-review-open` está ativo, a página reserva essa largura no lado direito
+- o layout responsivo do GiRED adapta-se ao espaço restante em vez de ficar escondido por baixo do painel
+- quando o painel fecha, a página recupera automaticamente toda a largura
+
 Continua disponível a opção `Só lista de correções`:
 
 - Ativa: ao abrir a Revisão, mantém o cabeçalho do painel e mostra apenas a lista de comentários/correções existentes
@@ -89,6 +97,7 @@ A partir da v1.7.0, o popup inclui a opção `Controlo de Versões à direita`.
 - O botão e o `X` nativos continuam responsáveis pela abertura e fecho
 - A largura é detetada automaticamente para reservar espaço no lado correto
 - Por omissão, numa instalação nova, o Controlo de Versões abre à direita
+- Se Revisão e Controlo de Versões estiverem abertos simultaneamente à direita, os dois painéis são colocados lado a lado e a página reserva espaço para ambos
 
 ## Atualizações
 
@@ -109,17 +118,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-Na v1.7.1, a Revisão permanece à direita e o Controlo de Versões mantém a opção independente de ser apresentado à direita.
+Na v1.7.2, a Revisão permanece à direita, mas a página adapta-se automaticamente à sua largura para que o conteúdo não fique tapado.
 
 ## Versão atual
 
-`1.7.1`
+`1.7.2`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.7.1` -> `1.7.2`): correções e melhorias pequenas
+- `PATCH` (`1.7.2` -> `1.7.3`): correções e melhorias pequenas
 - `MINOR` (`1.7.x` -> `1.8.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
