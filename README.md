@@ -1,4 +1,4 @@
-# GiRED Structure Manager
+# GiRED Fixer
 
 Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estrutura ao editor do GiRED.
 
@@ -23,7 +23,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
-- Popup compacto com interface visual própria para o mapper
+- Popup compacto com interface visual própria do GiRED Fixer
 
 ## Instalação
 
@@ -127,7 +127,7 @@ A partir da v1.8.4, as pills de localização usam os códigos reais da estrutur
 
 - lê `.course-vc-comment-location` no formato `ignorar > ignorar > SA > AT`
 - tenta usar diretamente o block ID presente no link CMS do erro para identificar a posição da atividade
-- usa também o mapa de rotas partilhado do Structure Mapper e o outline atual como fallback
+- usa também o mapa de rotas partilhado do GiRED Fixer e o outline atual como fallback
 - apresenta o formato compacto `SA01/AT05`
 - a primeira unidade de cada SA aparece como `SA01/INTROD`
 - a localização completa original continua visível por baixo
@@ -157,14 +157,14 @@ Na v1.8.5, a lista da Revisão deixa de pintar o erro inteiro de laranja/verde. 
 
 ## Versão atual
 
-`1.8.5`
+`1.9.4`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.8.5` -> `1.8.6`): correções e melhorias pequenas
-- `MINOR` (`1.8.x` -> `1.9.0`): novas funcionalidades compatíveis
+- `PATCH` (`1.9.4` -> `1.9.5`): correções e melhorias pequenas
+- `MINOR` (`1.9.x` -> `1.10.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
 ## Uso
