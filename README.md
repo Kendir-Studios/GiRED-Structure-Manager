@@ -18,6 +18,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o painel nativo de Controlo de Versões no lado esquerdo do GiRED
 - Faz a página adaptar-se automaticamente à largura do Controlo de Versões, evitando que este tape o conteúdo
 - Adiciona pesquisa rápida aos comentários do Controlo de Versões
+- Mostra uma pill `SA / AT` em cada comentário cuja localização tenha os quatro níveis esperados
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
 - Verifica e instala novas versões automaticamente em segundo plano
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
@@ -112,6 +113,15 @@ A partir da v1.8.0, a aba `Comentários` inclui uma barra de pesquisa imediatame
 - funciona em conjunto com os filtros nativos de Severidade, Estado e Equipa
 - se o GiRED recriar a lista de comentários, a barra e a pesquisa são reaplicadas automaticamente
 
+A partir da v1.8.1, os comentários passam também a apresentar uma pill de localização simplificada:
+
+- lê `.course-vc-comment-location`
+- interpreta a estrutura como `ignorar > ignorar > SA > AT`
+- mostra apenas `SA / AT` imediatamente acima da localização completa
+- a localização original continua visível
+- entradas sem os quatro níveis, como `Unidade Atual`, não recebem pill
+- as pills são reaplicadas automaticamente quando o GiRED recria a lista
+
 ## Atualizações
 
 Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano e no arranque do browser.
@@ -131,17 +141,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-Na v1.8.0, o Controlo de Versões mantém-se à esquerda, adapta a página sem a tapar e passa a ter pesquisa direta na lista de comentários.
+Na v1.8.1, cada erro com uma localização completa passa a destacar diretamente a respetiva `SA / AT` numa pill discreta.
 
 ## Versão atual
 
-`1.8.0`
+`1.8.1`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.8.0` -> `1.8.1`): correções e melhorias pequenas
+- `PATCH` (`1.8.1` -> `1.8.2`): correções e melhorias pequenas
 - `MINOR` (`1.8.x` -> `1.9.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
