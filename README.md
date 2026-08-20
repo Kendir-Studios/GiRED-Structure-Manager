@@ -15,6 +15,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o painel nativo de Revisão no lado direito do GiRED
 - Faz a página adaptar-se automaticamente à largura do painel de Revisão, evitando que este tape o conteúdo
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
+- Destaca erros abertos com fundo laranja suave e erros resolvidos com fundo verde suave
 - Mantém o painel nativo de Controlo de Versões no lado esquerdo do GiRED
 - Faz a página adaptar-se automaticamente à largura do Controlo de Versões, evitando que este tape o conteúdo
 - Adiciona pesquisa rápida aos comentários do Controlo de Versões
@@ -89,6 +90,13 @@ Continua disponível a opção `Só lista de correções`:
 - Desativada: o painel volta ao modo completo do GiRED
 - Esta opção vem desativada por omissão
 
+A partir da v1.8.2, os erros da Revisão ficam visualmente diferenciados pelo estado:
+
+- `Aberto`: fundo laranja muito suave com uma pequena marca lateral laranja
+- `Resolvido`: fundo verde muito suave com uma pequena marca lateral verde
+- o destaque é aplicado ao erro completo sem alterar os badges ou os controlos nativos
+- ao desligar a extensão, os fundos adicionais deixam de ser aplicados
+
 ## Controlo de Versões
 
 A partir da v1.7.3, o Controlo de Versões permanece sempre no lado esquerdo nativo do GiRED e deixa de funcionar visualmente como overlay.
@@ -141,17 +149,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-Na v1.8.1, cada erro com uma localização completa passa a destacar diretamente a respetiva `SA / AT` numa pill discreta.
+Na v1.8.2, a lista de erros da Revisão passa a distinguir imediatamente erros abertos e resolvidos através de fundos suaves laranja e verde.
 
 ## Versão atual
 
-`1.8.1`
+`1.8.2`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.8.1` -> `1.8.2`): correções e melhorias pequenas
+- `PATCH` (`1.8.2` -> `1.8.3`): correções e melhorias pequenas
 - `MINOR` (`1.8.x` -> `1.9.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
