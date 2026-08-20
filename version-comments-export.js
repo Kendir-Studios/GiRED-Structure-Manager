@@ -122,6 +122,36 @@
         return document.querySelectorAll(`${SIDEBAR_SELECTOR} ${COMMENT_SELECTOR}`).length;
     }
 
+    /** Indica se existem filtros nativos ou pesquisa da extensão ativos. */
+    function hasActiveFilters() {
+        const nativeFilterActive = Array.from(document.querySelectorAll(NATIVE_FILTER_SELECTOR))
+            .some(filter => String(filter.value || "").trim() !== "");
+        const searchActive = String(document.querySelector(SEARCH_INPUT_SELECTOR)?.value || "").trim() !== "";
+        return nativeFilterActive || searchActive;
+    }
+
+    /** Obtém o total global apresentado nas estatísticas, quando os filtros estão todos limpos. */
+    function getExpectedGlobalTotal() {
+        if (hasActiveFilters()) return null;
+
+        const statusBadges = Array.from(document.querySelectorAll(
+            "#vc-comment-stats .course-vc-status-badge"
+        ));
+
+        if (!statusBadges.length) return null;
+
+        const values = statusBadges
+            .map(badge => {
+                const match = getText(badge).match(/(\d[\d\s.]*)\s*$/);
+                if (!match) return 0;
+                return Number(match[1].replace(/[\s.]/g, "")) || 0;
+            })
+            .filter(value => value > 0);
+
+        if (!values.length) return null;
+        return values.reduce((sum, value) => sum + value, 0);
+    }
+
     /** Procura o elemento que efetivamente controla o scroll da lista de comentários. */
     function findScrollContainer() {
         const list = document.querySelector(COMMENTS_LIST_SELECTOR);
@@ -193,17 +223,29 @@
         if (!scroller) return getLoadedCommentCount();
 
         const originalScrollTop = scroller.scrollTop;
+        const expectedTotal = getExpectedGlobalTotal();
         let previousCount = getLoadedCommentCount();
         let idleRounds = 0;
 
+        if (expectedTotal && previousCount >= expectedTotal) {
+            return previousCount;
+        }
+
         for (let round = 0; round < MAX_LOAD_ROUNDS; round += 1) {
-            button.textContent = `A carregar... ${previousCount}`;
+            button.textContent = expectedTotal
+                ? `A carregar... ${previousCount}/${expectedTotal}`
+                : `A carregar... ${previousCount}`;
 
             scroller.scrollTop = scroller.scrollHeight;
             scroller.dispatchEvent(new Event("scroll", { bubbles: true }));
 
             const grew = await waitForCommentGrowth(previousCount);
             const currentCount = getLoadedCommentCount();
+
+            if (expectedTotal && currentCount >= expectedTotal) {
+                previousCount = currentCount;
+                break;
+            }
 
             if (grew || currentCount > previousCount) {
                 previousCount = currentCount;
@@ -225,36 +267,6 @@
         await new Promise(resolve => window.setTimeout(resolve, 80));
 
         return getLoadedCommentCount();
-    }
-
-    /** Indica se existem filtros nativos ou pesquisa da extensão ativos. */
-    function hasActiveFilters() {
-        const nativeFilterActive = Array.from(document.querySelectorAll(NATIVE_FILTER_SELECTOR))
-            .some(filter => String(filter.value || "").trim() !== "");
-        const searchActive = String(document.querySelector(SEARCH_INPUT_SELECTOR)?.value || "").trim() !== "";
-        return nativeFilterActive || searchActive;
-    }
-
-    /** Obtém o total global apresentado nas estatísticas, quando os filtros estão todos limpos. */
-    function getExpectedGlobalTotal() {
-        if (hasActiveFilters()) return null;
-
-        const statusBadges = Array.from(document.querySelectorAll(
-            "#vc-comment-stats .course-vc-status-badge"
-        ));
-
-        if (!statusBadges.length) return null;
-
-        const values = statusBadges
-            .map(badge => {
-                const match = getText(badge).match(/(\d[\d\s.]*)\s*$/);
-                if (!match) return 0;
-                return Number(match[1].replace(/[\s.]/g, "")) || 0;
-            })
-            .filter(value => value > 0);
-
-        if (!values.length) return null;
-        return values.reduce((sum, value) => sum + value, 0);
     }
 
     /** Cria um nome de ficheiro previsível e seguro para o sistema operativo. */
