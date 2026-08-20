@@ -2,6 +2,23 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.7.0] - 2026-08-20
+
+### Adicionado
+
+- Nova preferência `Controlo de Versões à direita` no popup
+- Novo `version-sidebar-control.js` para acompanhar o painel nativo `#course-vc-sidebar`
+- Novo `version-sidebar.css` para espelhar o painel de Controlo de Versões para o lado direito
+- A preferência fica guardada em `chrome.storage.local` e é aplicada imediatamente às páginas abertas
+- O painel continua a usar o ciclo nativo de abertura/fecho do GiRED através da classe `course-vc-open`
+- Suporte para manter simultaneamente a Revisão à esquerda e o Controlo de Versões à direita, reservando espaço para ambos
+
+### Alterado
+
+- Numa instalação nova, o painel de Controlo de Versões passa a abrir do lado direito por omissão
+- Quando a opção é desativada, o painel volta ao comportamento original do GiRED, do lado esquerdo
+- O botão/controlo nativo continua responsável por abrir e fechar o painel
+
 ## [1.6.2] - 2026-08-19
 
 ### Corrigido
