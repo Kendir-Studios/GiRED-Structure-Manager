@@ -2,6 +2,17 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [1.7.1] - 2026-08-20
+
+### Alterado
+
+- O painel de Revisão volta a usar permanentemente o lado direito nativo do GiRED
+- Removida a preferência `Revisão do lado esquerdo` do popup
+- Removidos os estilos que reposicionavam `#vc-review-sidebar` e alteravam as margens da página
+- `review-sidebar-control.js` passa a gerir apenas o modo `Só lista de correções`
+- A antiga preferência `giredReviewSidebarLeft` é removida automaticamente do `chrome.storage.local`
+- O Controlo de Versões continua a poder ser colocado do lado direito de forma independente
+
 ## [1.7.0] - 2026-08-20
 
 ### Adicionado
