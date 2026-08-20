@@ -12,7 +12,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o contexto ao entrar numa unidade
 - Suporta `apps.gired.pt` e `cms.gired.pt`
 - Pode ser ligada/desligada diretamente no popup
-- Permite escolher se o painel nativo de Revisão do GiRED aparece à esquerda ou à direita
+- Mantém o painel nativo de Revisão no lado direito do GiRED
 - Permite ativar um modo `Só lista de correções`, escondendo o formulário e mantendo apenas os comentários já existentes
 - Permite escolher se o painel nativo de Controlo de Versões aparece à direita ou mantém o lado esquerdo original
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
@@ -63,16 +63,15 @@ O ID da extensão é fixo entre computadores: `mackaaceiagpmapjgllmecpodnnhpcdm`
 
 ## Painel de Revisão
 
-A partir da v1.5.0, o popup inclui a opção `Revisão do lado esquerdo`.
+A partir da v1.7.1, o painel de Revisão permanece no lado direito nativo do GiRED.
 
-- Ativa: quando o utilizador abre a Revisão, o painel aparece do lado esquerdo
-- Desativada: mantém o comportamento original do GiRED, com o painel do lado direito
+- A extensão deixa de reposicionar o painel para a esquerda
 - O botão nativo `Revisão` continua responsável por abrir/fechar o painel
-- A preferência fica guardada em `chrome.storage.local`
+- O botão `X` e todo o ciclo de abertura/fecho ficam totalmente a cargo do GiRED
+- A antiga preferência `Revisão do lado esquerdo` foi removida
+- A antiga chave `giredReviewSidebarLeft` é limpa automaticamente
 
-Por omissão, numa instalação nova, o painel é apresentado à esquerda quando é aberto.
-
-A partir da v1.6.0 existe também a opção `Só lista de correções`.
+Continua disponível a opção `Só lista de correções`:
 
 - Ativa: ao abrir a Revisão, mantém o cabeçalho do painel e mostra apenas a lista de comentários/correções existentes
 - O formulário de nova correção, a informação da unidade e as tabs ficam ocultos
@@ -89,7 +88,6 @@ A partir da v1.7.0, o popup inclui a opção `Controlo de Versões à direita`.
 - A extensão acompanha a classe nativa `course-vc-open` e não força o painel a ficar aberto
 - O botão e o `X` nativos continuam responsáveis pela abertura e fecho
 - A largura é detetada automaticamente para reservar espaço no lado correto
-- Se a Revisão estiver aberta à esquerda ao mesmo tempo, a página reserva espaço para os dois painéis
 - Por omissão, numa instalação nova, o Controlo de Versões abre à direita
 
 ## Atualizações
@@ -111,17 +109,17 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 ## Interface
 
-A v1.7.0 acrescenta controlo independente do lado dos dois painéis principais: Revisão pode ficar à esquerda e Controlo de Versões à direita.
+Na v1.7.1, a Revisão permanece à direita e o Controlo de Versões mantém a opção independente de ser apresentado à direita.
 
 ## Versão atual
 
-`1.7.0`
+`1.7.1`
 
 ## Versionamento
 
 O projeto usa versionamento semântico:
 
-- `PATCH` (`1.7.0` -> `1.7.1`): correções e melhorias pequenas
+- `PATCH` (`1.7.1` -> `1.7.2`): correções e melhorias pequenas
 - `MINOR` (`1.7.x` -> `1.8.0`): novas funcionalidades compatíveis
 - `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
 
