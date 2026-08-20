@@ -8,6 +8,13 @@
     const ROUTE_MAP_KEY = "giredStructureMapperRoutesV2";
     const OUTLINE_SELECTOR = "#outline-sidebar-outline";
 
+    const SUBSECTIONS_SELECTOR = '[data-testid="section-card__subsections"]';
+    const SUBSECTION_SELECTOR = '[data-testid="subsection-card"]';
+    const SUBSECTION_TITLE_SELECTOR = ".subsection-card-title";
+    const UNITS_SELECTOR = '[data-testid="subsection-card__units"]';
+    const UNIT_SELECTOR = '[data-testid="unit-card"]';
+    const UNIT_TITLE_SELECTOR = ".unit-card-title";
+
     let updateScheduled = false;
 
     /** Formata um número com dois algarismos. */
@@ -35,10 +42,25 @@
         return String(code || "").replace(/\s+/g, "");
     }
 
-    /** Obtém o identificador do curso atual para evitar misturar mapas de outros recursos. */
-    function getCurrentCourseId() {
-        const match = location.href.match(/course-v1:[^/]+/i);
-        return match ? match[0] : "";
+    /** Obtém a assinatura do curso atual para não misturar mapas de recursos diferentes. */
+    function getCurrentCourseSignature() {
+        const match = location.href.match(/course-v1:([^/]+)/i);
+        return match?.[1] || "";
+    }
+
+    /** Obtém apenas as SAs diretamente pertencentes ao contentor indicado. */
+    function getSubsections(container) {
+        return Array.from(container.querySelectorAll(SUBSECTION_SELECTOR))
+            .filter(subsection => subsection.closest(SUBSECTIONS_SELECTOR) === container);
+    }
+
+    /** Obtém apenas as ATs diretamente pertencentes à SA indicada. */
+    function getUnits(subsection) {
+        const unitsContainer = subsection.querySelector(UNITS_SELECTOR);
+        if (!unitsContainer) return [];
+
+        return Array.from(unitsContainer.querySelectorAll(UNIT_SELECTOR))
+            .filter(unit => unit.closest(SUBSECTION_SELECTOR) === subsection);
     }
 
     /**
@@ -61,8 +83,35 @@
     }
 
     /**
+     * Constrói o mapa diretamente a partir da Estrutura do recurso.
+     * Esta é a fonte principal no ecrã de authoring porque contém todas as SAs e ATs
+     * e usa exatamente a mesma numeração do Structure Mapper.
+     */
+    function buildAuthoringStructureCodeMap() {
+        const map = new Map();
+
+        document.querySelectorAll(SUBSECTIONS_SELECTOR).forEach(container => {
+            getSubsections(container).forEach((subsection, saIndex) => {
+                const saName = subsection.querySelector(SUBSECTION_TITLE_SELECTOR)?.textContent?.trim();
+                if (!saName) return;
+
+                getUnits(subsection).forEach((unit, atIndex) => {
+                    const atName = unit.querySelector(UNIT_TITLE_SELECTOR)?.textContent?.trim();
+                    if (!atName) return;
+
+                    const saCode = `SA${formatNumber(saIndex + 1)}`;
+                    const atCode = atIndex === 0 ? "INTROD" : `AT${formatNumber(atIndex)}`;
+                    map.set(createNameKey(saName, atName), `${saCode}/${atCode}`);
+                });
+            });
+        });
+
+        return map;
+    }
+
+    /**
      * Constrói códigos diretamente a partir do outline da página do aluno.
-     * É especialmente útil para a SA atualmente expandida, cujas unidades estão no DOM.
+     * Serve de fallback quando a Estrutura do recurso não está presente no DOM.
      */
     function buildOutlineCodeMap() {
         const map = new Map();
@@ -94,7 +143,8 @@
 
     /**
      * Lê o mapa já criado pelo Structure Mapper quando a estrutura do curso foi indexada.
-     * O par SA+AT é usado para evitar ambiguidades entre atividades com o mesmo nome.
+     * A assinatura do curso é comparada também com URLs CMS `block-v1:...`, que não
+     * contêm literalmente o prefixo `course-v1:`.
      */
     async function buildStoredCodeMap() {
         const map = new Map();
@@ -104,11 +154,11 @@
 
             const result = await chrome.storage.local.get(ROUTE_MAP_KEY);
             const routes = result[ROUTE_MAP_KEY] || {};
-            const currentCourseId = getCurrentCourseId();
+            const courseSignature = getCurrentCourseSignature();
 
             Object.entries(routes).forEach(([route, context]) => {
                 if (!context?.saName || !context?.atName || !context?.saCode || !context?.atCode) return;
-                if (currentCourseId && !String(route).includes(currentCourseId)) return;
+                if (courseSignature && !String(route).includes(courseSignature)) return;
 
                 const label = `${compactCode(context.saCode)}/${compactCode(context.atCode)}`;
                 map.set(createNameKey(context.saName, context.atName), label);
@@ -120,13 +170,18 @@
         return map;
     }
 
-    /** Junta o mapa persistente ao que pode ser inferido diretamente da página atual. */
+    /**
+     * Junta todas as fontes disponíveis. A estrutura visível tem prioridade sobre dados
+     * persistidos porque representa sempre o estado atual do recurso.
+     */
     async function buildCodeMap() {
-        const storedMap = await buildStoredCodeMap();
+        const map = await buildStoredCodeMap();
         const outlineMap = buildOutlineCodeMap();
+        const authoringMap = buildAuthoringStructureCodeMap();
 
-        outlineMap.forEach((value, key) => storedMap.set(key, value));
-        return storedMap;
+        outlineMap.forEach((value, key) => map.set(key, value));
+        authoringMap.forEach((value, key) => map.set(key, value));
+        return map;
     }
 
     /** Cria ou atualiza a pill numérica de localização de um comentário. */
@@ -189,8 +244,8 @@
     }
 
     /**
-     * O GiRED recria a lista de comentários ao trocar filtros, estado ou separador.
-     * Observamos essas alterações para voltar a aplicar as pills automaticamente.
+     * O GiRED recria a lista de comentários e a estrutura dinamicamente.
+     * Observamos essas alterações para recalcular os códigos assim que os elementos existirem.
      */
     const observer = new MutationObserver(scheduleUpdate);
 
