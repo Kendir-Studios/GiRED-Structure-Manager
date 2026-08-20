@@ -4,6 +4,7 @@
     const ENABLED_KEY = "giredStructureMapperEnabled";
     const REVIEW_LEFT_KEY = "giredReviewSidebarLeft";
     const REVIEW_COMMENTS_ONLY_KEY = "giredReviewCommentsOnly";
+    const VERSION_RIGHT_KEY = "giredVersionSidebarRight";
     const NATIVE_HOST = "pt.kendir.gired_updater";
 
     const toggle = document.getElementById("enabledToggle");
@@ -12,6 +13,8 @@
     const reviewSideStatus = document.getElementById("reviewSideStatus");
     const reviewCommentsToggle = document.getElementById("reviewCommentsToggle");
     const reviewCommentsStatus = document.getElementById("reviewCommentsStatus");
+    const versionSideToggle = document.getElementById("versionSideToggle");
+    const versionSideStatus = document.getElementById("versionSideStatus");
     const version = document.getElementById("version");
     const updateStatus = document.getElementById("updateStatus");
     const latestVersion = document.getElementById("latestVersion");
@@ -36,6 +39,12 @@
     function updateReviewCommentsUi(commentsOnly) {
         reviewCommentsToggle.checked = commentsOnly;
         reviewCommentsStatus.textContent = commentsOnly ? "Apenas comentários" : "Painel completo";
+    }
+
+    /** Atualiza a preferência visual do lado do painel de Controlo de Versões. */
+    function updateVersionSideUi(useRightSide) {
+        versionSideToggle.checked = useRightSide;
+        versionSideStatus.textContent = useRightSide ? "Direita" : "Esquerda";
     }
 
     /** Envia uma mensagem ao helper nativo responsável pelas atualizações. */
@@ -142,16 +151,19 @@
             const result = await chrome.storage.local.get([
                 ENABLED_KEY,
                 REVIEW_LEFT_KEY,
-                REVIEW_COMMENTS_ONLY_KEY
+                REVIEW_COMMENTS_ONLY_KEY,
+                VERSION_RIGHT_KEY
             ]);
 
             updateUi(result[ENABLED_KEY] !== false);
             updateReviewSideUi(result[REVIEW_LEFT_KEY] !== false);
             updateReviewCommentsUi(result[REVIEW_COMMENTS_ONLY_KEY] === true);
+            updateVersionSideUi(result[VERSION_RIGHT_KEY] !== false);
         } catch (_) {
             updateUi(true);
             updateReviewSideUi(true);
             updateReviewCommentsUi(false);
+            updateVersionSideUi(true);
         }
 
         await checkUpdates();
@@ -176,6 +188,13 @@
         const commentsOnly = reviewCommentsToggle.checked;
         updateReviewCommentsUi(commentsOnly);
         await chrome.storage.local.set({ [REVIEW_COMMENTS_ONLY_KEY]: commentsOnly });
+    });
+
+    /** Guarda a preferência do lado do painel de Controlo de Versões. */
+    versionSideToggle.addEventListener("change", async () => {
+        const useRightSide = versionSideToggle.checked;
+        updateVersionSideUi(useRightSide);
+        await chrome.storage.local.set({ [VERSION_RIGHT_KEY]: useRightSide });
     });
 
     /** Verifica ou instala a atualização conforme o estado atual do botão. */
