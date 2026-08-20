@@ -19,3 +19,91 @@ body.course-vc-open.vc-review-open {
     padding-left: 0 !important;
     padding-right: 0 !important;
 }
+
+/* Barra de pesquisa adicionada antes da lista de comentários do Controlo de Versões. */
+.gired-structure-mapper-vc-search {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-height: 34px;
+    margin: 4px 15px 10px;
+    padding: 0 9px;
+    border: 1px solid #cfd8df;
+    border-radius: 4px;
+    background: #ffffff;
+    color: #667783;
+}
+
+.gired-structure-mapper-vc-search:focus-within {
+    border-color: #0a7f40;
+    box-shadow: 0 0 0 1px rgba(10, 127, 64, 0.12);
+}
+
+.gired-vc-search-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    color: #758590;
+}
+
+.gired-vc-search-input {
+    min-width: 0;
+    flex: 1 1 auto;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #27343d;
+    font: inherit;
+    font-size: 12px;
+    line-height: 1.3;
+}
+
+.gired-vc-search-input::placeholder {
+    color: #8b98a1;
+}
+
+/* Remove o X nativo para manter apenas o botão de limpar consistente da extensão. */
+.gired-vc-search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.gired-vc-search-count {
+    flex: 0 0 auto;
+    color: #8b98a1;
+    font-size: 10px;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.gired-vc-search-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: 0;
+    border-radius: 3px;
+    background: transparent;
+    color: #6c7a84;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 1;
+}
+
+.gired-vc-search-clear:hover {
+    background: #f0f3f5;
+    color: #26343d;
+}
+
+.gired-vc-search-clear:focus-visible {
+    outline: 2px solid #0a7f40;
+    outline-offset: 1px;
+}
+
+/* A pesquisa acrescenta apenas mais um filtro; não altera os filtros nativos do GiRED. */
+#course-vc-sidebar .course-vc-comment-item.gired-vc-search-hidden {
+    display: none !important;
+}
