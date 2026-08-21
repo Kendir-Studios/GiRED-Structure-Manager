@@ -60,6 +60,7 @@ jobs:
             content.js
             cms-dropdowns.js
             cms-code-editor.js
+            cms-sequence-nav.js
             styles.css
             version-sidebar.css
             context-hide.css

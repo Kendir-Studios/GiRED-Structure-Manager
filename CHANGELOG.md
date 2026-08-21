@@ -2,6 +2,15 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [2.0.1] - 2026-08-21
+
+### Corrigido
+
+- A barra de navegação das unidades no CMS (`#sequence-nav`, com `Anterior`/`Seguinte`/`Nova Unidade`) deixa de desaparecer: a extensão guarda uma cópia sempre que ela está presente e, se o Studio não a renderizar ao fim de 2,5 s, repõe a última cópia conhecida com a unidade atual marcada como ativa
+- Na cópia restaurada, as tabs e os botões `Anterior`/`Seguinte` navegam normalmente; `Nova Unidade` recarrega a página para usar o fluxo nativo
+- Assim que o Studio volta a renderizar a barra nativa, esta substitui a cópia automaticamente
+- Novo `cms-sequence-nav.js`
+
 ## [2.0.0] - 2026-08-21
 
 ### Adicionado

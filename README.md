@@ -25,6 +25,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
 - Popup compacto com interface visual própria do GiRED Fixer
 - No CMS, o modal `Editando: ...` ocupa o ecrã inteiro
+- No CMS, a barra de navegação das unidades (`Anterior`/`Seguinte`) é reposta automaticamente se o Studio não a renderizar
 - No CMS, o `Code view` dos componentes SAGE ganha um editor JSON com realce de sintaxe, numeração de linhas, colapso de regiões `{...}`/`[...]`, validação e formatação
 
 ## Instalação
@@ -159,7 +160,7 @@ Na v1.8.5, a lista da Revisão deixa de pintar o erro inteiro de laranja/verde. 
 
 ## Versão atual
 
-`2.0.0`
+`2.0.1`
 
 ## Versionamento
 
@@ -167,7 +168,7 @@ O projeto usa versionamento semântico:
 
 - `PATCH` (`1.9.4` -> `1.9.5`): correções e melhorias pequenas
 - `MINOR` (`1.9.x` -> `1.10.0`): novas funcionalidades compatíveis
-- `MAJOR` (`1.x` -> `2.0.0`): alterações maiores/incompatíveis
+- `MAJOR` (`1.x` -> `2.0.1`): alterações maiores/incompatíveis
 
 ## Uso
 
