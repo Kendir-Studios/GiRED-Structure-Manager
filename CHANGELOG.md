@@ -2,6 +2,25 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [2.0.0] - 2026-08-21
+
+### Adicionado
+
+- O modal nativo `Editando: ...` do CMS passa a ocupar o ecrã inteiro, com scroll apenas na área de conteúdo
+- Novo editor de código para o `Code view` dos componentes SAGE, em `cms-code-editor.js` e `cms-editor-modal.css`:
+  - realce de sintaxe JSON com tema escuro (chaves, strings, números, booleanos, `null` e parênteses coloridos por nível)
+  - numeração de linhas e destaque da linha ativa
+  - validação em tempo real com indicação de linha/coluna do erro
+  - botões `Formatar`, `Compactar` e `Copiar`
+  - `Tab`/`Shift+Tab` para indentar, indentação automática no `Enter`, fecho automático de `{`, `[` e `"`, e `Shift+Alt+F` para formatar
+  - colapso de regiões `{...}` e `[...]` através das setas na numeração de linhas, dos botões `Colapsar tudo`/`Expandir tudo` ou de `Ctrl+Shift+[` / `Ctrl+Shift+]`
+  - as regiões colapsadas aparecem como `{⋯}`, expandem-se automaticamente ao serem tocadas pelo cursor e são sempre expandidas antes de `Save`/`Visual view`, pelo que o JSON guardado fica sempre completo
+
+### Compatibilidade
+
+- A textarea nativa continua a ser a fonte de verdade; os botões `Save`/`Visual view` do xblock continuam a ler o seu valor
+- Ao desligar a extensão, o modal e o `Code view` voltam ao aspeto nativo do GiRED
+
 ## [1.8.0] - 2026-08-20
 
 ### Adicionado

@@ -59,9 +59,11 @@ jobs:
             version-comment-location-pill.js
             content.js
             cms-dropdowns.js
+            cms-code-editor.js
             styles.css
             version-sidebar.css
             context-hide.css
+            cms-editor-modal.css
             version-comments-export.js
             version-comments-export-links.js
           )

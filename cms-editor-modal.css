@@ -1,0 +1,270 @@
+/* Faz o modal nativo "Editando: ..." do Studio ocupar o ecrã inteiro. */
+html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-window {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    max-width: none !important;
+    height: 100vh !important;
+    max-height: none !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    overflow: hidden !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .edit-xblock-modal {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-header,
+html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-actions {
+    flex: 0 0 auto;
+}
+
+/* A área de conteúdo passa a ser a única zona com scroll, ocupando todo o espaço restante. */
+html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-content {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow-y: auto !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .xblock-editor,
+html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .xblock-studio_view {
+    min-height: 100%;
+}
+
+/* ---------- Editor de código (Code view) ---------- */
+
+.gired-code-editor {
+    display: none;
+    position: relative;
+    box-sizing: border-box;
+    margin-top: 8px;
+    border: 1px solid #2b2b2b;
+    border-radius: 6px;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: Consolas, "Cascadia Code", "Fira Code", "JetBrains Mono", Menlo, Monaco, monospace;
+    font-size: 13px;
+    line-height: 20px;
+    overflow: hidden;
+}
+
+.gired-code-editor.is-visible {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 230px);
+    min-height: 320px;
+}
+
+.gired-code-editor-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 0 0 auto;
+    padding: 6px 10px;
+    border-bottom: 1px solid #333;
+    background: #252526;
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 12px;
+    color: #cccccc;
+}
+
+.gired-code-editor-toolbar .gired-code-editor-title {
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.gired-code-editor-toolbar .gired-code-editor-status {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: #1b3a1b;
+    color: #89d185;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 55%;
+}
+
+.gired-code-editor-toolbar .gired-code-editor-status.is-error {
+    background: #4b1d1d;
+    color: #f48771;
+}
+
+.gired-code-editor-toolbar button {
+    padding: 3px 10px;
+    border: 1px solid #3c3c3c;
+    border-radius: 4px;
+    background: #333333;
+    color: #e0e0e0;
+    font: inherit;
+    cursor: pointer;
+}
+
+.gired-code-editor-toolbar button:hover {
+    background: #3f3f3f;
+}
+
+.gired-code-editor-body {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.gired-code-editor-gutter {
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    min-width: 48px;
+    padding: 10px 10px 10px 0;
+    border-right: 1px solid #2b2b2b;
+    background: #1e1e1e;
+    color: #6e7681;
+    text-align: right;
+    user-select: none;
+    overflow: hidden;
+    white-space: pre;
+}
+
+.gired-code-editor-gutter .is-active {
+    color: #c6c6c6;
+}
+
+/* Setas de colapsar/expandir ao lado do número de linha. */
+.gired-code-editor-gutter .gired-code-editor-fold {
+    display: inline-block;
+    width: 1.4ch;
+    margin-left: 0.4ch;
+    text-align: center;
+    color: transparent;
+    cursor: pointer;
+    transition: color 0.12s ease;
+}
+
+.gired-code-editor-gutter:hover .gired-code-editor-fold[data-action],
+.gired-code-editor-gutter .gired-code-editor-fold.is-folded {
+    color: #c6c6c6;
+}
+
+.gired-code-editor-gutter .gired-code-editor-fold[data-action]:hover {
+    color: #ffffff;
+}
+
+.gired-code-editor-scroll {
+    position: relative;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+}
+
+/* A camada colorida e a textarea partilham exatamente as mesmas métricas. */
+.gired-code-editor-highlight,
+.gired-code-editor textarea.sage-studio-code {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    height: 100% !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 10px 14px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    font-family: inherit !important;
+    font-size: inherit !important;
+    line-height: inherit !important;
+    letter-spacing: normal !important;
+    tab-size: 2;
+    white-space: pre !important;
+    word-wrap: normal !important;
+    overflow-wrap: normal !important;
+}
+
+.gired-code-editor-highlight {
+    margin: 0;
+    pointer-events: none;
+    overflow: hidden;
+    color: #d4d4d4;
+}
+
+.gired-code-editor textarea.sage-studio-code {
+    background: transparent !important;
+    color: transparent !important;
+    caret-color: #ffffff !important;
+    resize: none !important;
+    outline: none !important;
+    overflow: auto !important;
+    -webkit-text-fill-color: transparent;
+}
+
+.gired-code-editor textarea.sage-studio-code::selection {
+    background: rgba(38, 79, 120, 0.85);
+}
+
+.gired-code-editor-highlight .tok-key { color: #9cdcfe; }
+.gired-code-editor-highlight .tok-str { color: #ce9178; }
+.gired-code-editor-highlight .tok-num { color: #b5cea8; }
+.gired-code-editor-highlight .tok-bool { color: #569cd6; }
+.gired-code-editor-highlight .tok-null { color: #569cd6; }
+.gired-code-editor-highlight .tok-punc { color: #d4d4d4; }
+.gired-code-editor-highlight .tok-br0 { color: #ffd700; }
+.gired-code-editor-highlight .tok-br1 { color: #da70d6; }
+.gired-code-editor-highlight .tok-br2 { color: #179fff; }
+.gired-code-editor-highlight .tok-fold {
+    padding: 0 1px;
+    border: 1px solid #5a5a5a;
+    border-radius: 3px;
+    background: #2d2d2d;
+    color: #c6c6c6;
+}
+.gired-code-editor-highlight .tok-err { color: #f44747; text-decoration: underline wavy #f44747; }
+
+.gired-code-editor-highlight .line-active {
+    background: rgba(255, 255, 255, 0.04);
+}
+
+/* Ao desligar a extensão, o editor desaparece e a textarea nativa volta ao normal. */
+html.gired-structure-mapper-disabled .gired-code-editor {
+    display: contents !important;
+}
+
+html.gired-structure-mapper-disabled .gired-code-editor > :not(.gired-code-editor-body),
+html.gired-structure-mapper-disabled .gired-code-editor-body > :not(.gired-code-editor-scroll),
+html.gired-structure-mapper-disabled .gired-code-editor-highlight {
+    display: none !important;
+}
+
+html.gired-structure-mapper-disabled .gired-code-editor-body,
+html.gired-structure-mapper-disabled .gired-code-editor-scroll {
+    display: contents !important;
+}
+
+html.gired-structure-mapper-disabled .gired-code-editor textarea.sage-studio-code {
+    position: static !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: 320px !important;
+    padding: 8px !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    margin-top: 8px !important;
+    background: #fff !important;
+    color: #333 !important;
+    -webkit-text-fill-color: initial;
+    resize: vertical !important;
+    font-family: monospace !important;
+    font-size: 13px !important;
+    line-height: 1.4 !important;
+}
