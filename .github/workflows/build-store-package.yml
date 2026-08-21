@@ -1,0 +1,88 @@
+name: Build Chrome Web Store package
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate store manifest
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          manifest = json.loads(Path("manifest.json").read_text(encoding="utf-8"))
+          permissions = set(manifest.get("permissions", []))
+
+          assert manifest.get("manifest_version") == 3, "Chrome Web Store build must use Manifest V3"
+          assert "nativeMessaging" not in permissions, "nativeMessaging must not be shipped in the store build"
+          assert "alarms" not in permissions, "alarms are only used by the legacy updater"
+          assert "background" not in manifest, "legacy updater background worker must not be shipped"
+          assert manifest.get("icons", {}).get("128") == "icons/icon128.png", "128px store icon is missing"
+          PY
+
+      - name: Build Chrome Web Store ZIP
+        id: package
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          VERSION="$(python3 -c 'import json; print(json.load(open("manifest.json", encoding="utf-8"))["version"])')"
+          ROOT="$PWD"
+          STAGE="$ROOT/dist/store-package"
+          ZIP="$ROOT/dist/gired-fixer-${VERSION}-chrome-web-store.zip"
+
+          rm -rf "$ROOT/dist"
+          mkdir -p "$STAGE/icons"
+
+          files=(
+            manifest.json
+            popup.html
+            popup.css
+            popup.js
+            toggle-control.js
+            review-sidebar-control.js
+            version-sidebar-control.js
+            version-comments-search.js
+            version-comment-location-pill.js
+            content.js
+            cms-dropdowns.js
+            styles.css
+            version-sidebar.css
+            context-hide.css
+            version-comments-export.js
+            version-comments-export-links.js
+          )
+
+          for file in "${files[@]}"; do
+            cp "$ROOT/$file" "$STAGE/$file"
+          done
+
+          for icon in icon16.png icon32.png icon48.png icon128.png; do
+            cp "$ROOT/icons/$icon" "$STAGE/icons/$icon"
+          done
+
+          (cd "$STAGE" && zip -q -r "$ZIP" .)
+          unzip -l "$ZIP"
+
+          echo "zip=$ZIP" >> "$GITHUB_OUTPUT"
+
+      - name: Upload store package
+        uses: actions/upload-artifact@v4
+        with:
+          name: gired-fixer-chrome-web-store
+          path: ${{ steps.package.outputs.zip }}
+          if-no-files-found: error
+          retention-days: 30
