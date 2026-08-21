@@ -2,6 +2,13 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [2.0.2] - 2026-08-21
+
+### Alterado
+
+- O modal `Editando: ...` deixa de ficar colado às bordas do browser: passa a ter uma margem de 24px à volta (10px em ecrãs estreitos), cantos arredondados e sombra
+- O editor de código ajusta a sua altura a essa margem
+
 ## [2.0.1] - 2026-08-21
 
 ### Corrigido

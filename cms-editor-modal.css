@@ -1,19 +1,27 @@
-/* Faz o modal nativo "Editando: ..." do Studio ocupar o ecrã inteiro. */
+/* Faz o modal nativo "Editando: ..." do Studio ocupar quase todo o ecrã, com uma margem à volta. */
 html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-window {
+    --gired-modal-gap: 24px;
     position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 100vw !important;
+    top: var(--gired-modal-gap) !important;
+    left: var(--gired-modal-gap) !important;
+    right: var(--gired-modal-gap) !important;
+    bottom: var(--gired-modal-gap) !important;
+    width: calc(100vw - var(--gired-modal-gap) * 2) !important;
     max-width: none !important;
-    height: 100vh !important;
+    height: calc(100vh - var(--gired-modal-gap) * 2) !important;
     max-height: none !important;
     margin: 0 !important;
-    border-radius: 0 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35) !important;
     display: flex !important;
     flex-direction: column !important;
     overflow: hidden !important;
+}
+
+@media (max-width: 900px) {
+    html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-window {
+        --gired-modal-gap: 10px;
+    }
 }
 
 html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .edit-xblock-modal {
@@ -62,7 +70,7 @@ html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .xb
 .gired-code-editor.is-visible {
     display: flex;
     flex-direction: column;
-    height: calc(100vh - 230px);
+    height: calc(100vh - 280px);
     min-height: 320px;
 }
 
