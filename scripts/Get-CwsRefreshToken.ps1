@@ -16,6 +16,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+Add-Type -AssemblyName System.Web
 $redirectUri = "http://localhost:$Port"
 $scope = "https://www.googleapis.com/auth/chromewebstore"
 
@@ -39,7 +40,7 @@ Write-Host "A abrir o browser para autorizar (inicia sessão com a conta dona da
 Start-Process $authUrl
 
 $context = $listener.GetContext()
-$query = [System.Web.HttpUtility]::ParseQueryString($context.Request.Url.Query)
+$query = $context.Request.QueryString
 $code = $query["code"]
 $error_ = $query["error"]
 
