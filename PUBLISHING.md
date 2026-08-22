@@ -20,6 +20,16 @@ A store continua a fazer a sua revisão; o estado `ITEM_PENDING_REVIEW` é norma
 
 ### 2. Obter o refresh token
 
+Forma rápida (Windows), a partir da raiz do repositório:
+
+```powershell
+.\scripts\Get-CwsRefreshToken.ps1 -ClientId "CLIENT_ID" -ClientSecret "CLIENT_SECRET"
+```
+
+O script abre o browser, recebe o código em `localhost:8080`, troca-o pelo token e copia o `refresh_token` para a área de transferência. Se o PowerShell recusar executar scripts: `powershell -ExecutionPolicy Bypass -File .\scripts\Get-CwsRefreshToken.ps1 ...`.
+
+Forma manual:
+
 Substituir `CLIENT_ID` e `CLIENT_SECRET` e abrir este URL no browser, com sessão iniciada na conta dona da extensão:
 
 ```
