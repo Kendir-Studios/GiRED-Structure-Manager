@@ -158,6 +158,10 @@ Como fallback, continua a ser possível atualizar manualmente através do GitHub
 
 Na v1.8.5, a lista da Revisão deixa de pintar o erro inteiro de laranja/verde. O estado passa a ser indicado principalmente pela barra lateral e pelo badge, mantendo o conteúdo legível e visualmente separado.
 
+## Publicação
+
+Cada push para `main` gera o ZIP da Chrome Web Store. Quando a `version` do `manifest.json` muda, o workflow também envia e publica a nova versão na store automaticamente. Ver [PUBLISHING.md](PUBLISHING.md) para a configuração dos segredos.
+
 ## Versão atual
 
 `2.0.2`

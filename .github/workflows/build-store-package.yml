@@ -1,10 +1,15 @@
-name: Build Chrome Web Store package
+name: Build and publish Chrome Web Store package
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      publish:
+        description: "Enviar e publicar na Chrome Web Store mesmo sem mudança de versão"
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -16,6 +21,24 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect version change
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          current="$(python3 -c 'import json; print(json.load(open("manifest.json", encoding="utf-8"))["version"])')"
+          previous=""
+          if git rev-parse --verify HEAD~1 >/dev/null 2>&1; then
+            previous="$(git show HEAD~1:manifest.json 2>/dev/null | python3 -c 'import json,sys; print(json.load(sys.stdin).get("version",""))' || true)"
+          fi
+          changed=false
+          if [ "$current" != "$previous" ]; then changed=true; fi
+          echo "version=$current" >> "$GITHUB_OUTPUT"
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "Versão atual: $current (anterior: ${previous:-n/a}) -> changed=$changed"
 
       - name: Validate store manifest
         run: |
@@ -89,3 +112,72 @@ jobs:
           path: ${{ steps.package.outputs.zip }}
           if-no-files-found: error
           retention-days: 30
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      changed: ${{ steps.version.outputs.changed }}
+
+  publish:
+    needs: build
+    if: needs.build.outputs.changed == 'true' || github.event.inputs.publish == 'true'
+    runs-on: ubuntu-latest
+    environment: chrome-web-store
+    concurrency:
+      group: chrome-web-store-publish
+      cancel-in-progress: false
+
+    steps:
+      - name: Download store package
+        uses: actions/download-artifact@v4
+        with:
+          name: gired-fixer-chrome-web-store
+          path: dist
+
+      - name: Upload and publish to Chrome Web Store
+        shell: bash
+        env:
+          CWS_CLIENT_ID: ${{ secrets.CWS_CLIENT_ID }}
+          CWS_CLIENT_SECRET: ${{ secrets.CWS_CLIENT_SECRET }}
+          CWS_REFRESH_TOKEN: ${{ secrets.CWS_REFRESH_TOKEN }}
+          CWS_EXTENSION_ID: ${{ secrets.CWS_EXTENSION_ID }}
+          VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          for name in CWS_CLIENT_ID CWS_CLIENT_SECRET CWS_REFRESH_TOKEN CWS_EXTENSION_ID; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Falta o segredo $name (ver PUBLISHING.md)"
+              exit 1
+            fi
+          done
+
+          ZIP="$(ls dist/*.zip | head -n 1)"
+          echo "A publicar $ZIP (v$VERSION) no item $CWS_EXTENSION_ID"
+
+          TOKEN="$(curl -sS --fail-with-body -X POST https://oauth2.googleapis.com/token             -d client_id="$CWS_CLIENT_ID"             -d client_secret="$CWS_CLIENT_SECRET"             -d refresh_token="$CWS_REFRESH_TOKEN"             -d grant_type=refresh_token | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')"
+
+          UPLOAD="$(curl -sS --fail-with-body -X PUT             -H "Authorization: Bearer $TOKEN"             -H "x-goog-api-version: 2"             -T "$ZIP"             "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$CWS_EXTENSION_ID")"
+          echo "Upload: $UPLOAD"
+          echo "$UPLOAD" | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          if data.get("uploadState") not in ("SUCCESS", "IN_PROGRESS"):
+              print("::error::Upload rejeitado: " + json.dumps(data.get("itemError", data)))
+              sys.exit(1)
+          '
+
+          PUBLISH="$(curl -sS --fail-with-body -X POST             -H "Authorization: Bearer $TOKEN"             -H "x-goog-api-version: 2"             -H "Content-Length: 0"             "https://www.googleapis.com/chromewebstore/v1.1/items/$CWS_EXTENSION_ID/publish")"
+          echo "Publish: $PUBLISH"
+          echo "$PUBLISH" | python3 -c '
+          import json, sys
+          data = json.load(sys.stdin)
+          status = data.get("status", [])
+          if not any(s in ("OK", "ITEM_PENDING_REVIEW") for s in status):
+              print("::error::Publicação falhou: " + json.dumps(data))
+              sys.exit(1)
+          print("Estado: " + ", ".join(status))
+          '
+
+          echo "### GiRED Fixer v$VERSION enviado para a Chrome Web Store" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Estado: \`$PUBLISH\`" >> "$GITHUB_STEP_SUMMARY"
