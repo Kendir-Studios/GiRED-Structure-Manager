@@ -2,6 +2,15 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [2.0.3] - 2026-08-22
+
+### Corrigido
+
+- Ícones PNG regenerados a partir de `icons/icon-source.svg` (os anteriores estavam corrompidos e a Chrome Web Store rejeitava-os)
+- O ZIP da store deixa de incluir a `key` do manifest, que fazia o upload falhar com `PKG_MANIFEST_KEY_NOT_MATCH`
+- O build valida a integridade dos PNG antes de empacotar
+- Publicação automática na Chrome Web Store quando a versão muda (ver `PUBLISHING.md`)
+
 ## [2.0.2] - 2026-08-21
 
 ### Alterado
