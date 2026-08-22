@@ -17,6 +17,7 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout
@@ -144,6 +145,7 @@ jobs:
     needs: build
     if: needs.build.outputs.changed == 'true' || github.event.inputs.publish == 'true'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     environment: chrome-web-store
     concurrency:
       group: chrome-web-store-publish
@@ -177,9 +179,9 @@ jobs:
           ZIP="$(ls dist/*.zip | head -n 1)"
           echo "A publicar $ZIP (v$VERSION) no item $CWS_EXTENSION_ID"
 
-          TOKEN="$(curl -sS --fail-with-body -X POST https://oauth2.googleapis.com/token             -d client_id="$CWS_CLIENT_ID"             -d client_secret="$CWS_CLIENT_SECRET"             -d refresh_token="$CWS_REFRESH_TOKEN"             -d grant_type=refresh_token | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')"
+          TOKEN="$(curl -sS --fail-with-body --max-time 60 -X POST https://oauth2.googleapis.com/token             -d client_id="$CWS_CLIENT_ID"             -d client_secret="$CWS_CLIENT_SECRET"             -d refresh_token="$CWS_REFRESH_TOKEN"             -d grant_type=refresh_token | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')"
 
-          UPLOAD="$(curl -sS --fail-with-body -X PUT             -H "Authorization: Bearer $TOKEN"             -H "x-goog-api-version: 2"             -T "$ZIP"             "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$CWS_EXTENSION_ID")"
+          UPLOAD="$(curl -sS --fail-with-body --max-time 120 -X PUT             -H "Authorization: Bearer $TOKEN"             -H "x-goog-api-version: 2"             -T "$ZIP"             "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$CWS_EXTENSION_ID")"
           echo "Upload: $UPLOAD"
           echo "$UPLOAD" | python3 -c '
           import json, sys
@@ -189,7 +191,7 @@ jobs:
               sys.exit(1)
           '
 
-          PUBLISH="$(curl -sS --fail-with-body -X POST             -H "Authorization: Bearer $TOKEN"             -H "x-goog-api-version: 2"             -H "Content-Length: 0"             "https://www.googleapis.com/chromewebstore/v1.1/items/$CWS_EXTENSION_ID/publish")"
+          PUBLISH="$(curl -sS --fail-with-body --max-time 60 -X POST             -H "Authorization: Bearer $TOKEN"             -H "x-goog-api-version: 2"             -H "Content-Length: 0"             "https://www.googleapis.com/chromewebstore/v1.1/items/$CWS_EXTENSION_ID/publish")"
           echo "Publish: $PUBLISH"
           echo "$PUBLISH" | python3 -c '
           import json, sys
