@@ -60,7 +60,7 @@ A resposta inclui `refresh_token`. Guardar esse valor (só é devolvido nesta tr
 
 ### 3. ID da extensão
 
-Em <https://chrome.google.com/webstore/devconsole> abrir o item GiRED Fixer; o ID (32 letras) aparece no URL e na página do item. Como o `manifest.json` inclui a `key`, deve ser `mackaaceiagpmapjgllmecpodnnhpcdm`, mas confirmar na consola.
+Em <https://chrome.google.com/webstore/devconsole> abrir o item GiRED Fixer; o ID (32 letras) aparece por baixo do título. Para a versão publicada é `lahelmcblfcmfdpimmknfphjlaflfkdp` — **não** é o ID da instalação sem compactação (`mackaaceiagpmapjgllmecpodnnhpcdm`, derivado da `key` do manifest), porque a Web Store atribui o seu próprio ID.
 
 ### 4. Segredos no GitHub
 
