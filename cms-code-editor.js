@@ -616,6 +616,34 @@
         textarea.addEventListener("beforeinput", () => {
             unfoldTouching(textarea.selectionStart, textarea.selectionEnd);
         });
+
+        /** Alarga a seleção para nunca cortar um marcador ao meio. */
+        const snapSelectionToMarkers = (start, end) => {
+            findMarkers(textarea.value).forEach(m => {
+                if (start > m.start && start < m.end) start = m.start;
+                if (end > m.start && end < m.end) end = m.end;
+            });
+            return [start, end];
+        };
+
+        /** Copiar/cortar entrega sempre o JSON completo, mesmo com regiões colapsadas. */
+        const handleClipboard = (event, isCut) => {
+            if (!isExtensionEnabled()) return;
+            const [start, end] = snapSelectionToMarkers(textarea.selectionStart, textarea.selectionEnd);
+            const selected = textarea.value.slice(start, end);
+            if (!selected || !findMarkers(selected).length) return;
+
+            event.preventDefault();
+            event.clipboardData.setData("text/plain", expandText(selected, folds));
+            if (isCut) {
+                findMarkers(selected).forEach(m => folds.delete(m.id));
+                textarea.setRangeText("", start, end, "end");
+                lastRenderedValue = null;
+                scheduleRender();
+            }
+        };
+        textarea.addEventListener("copy", event => handleClipboard(event, false));
+        textarea.addEventListener("cut", event => handleClipboard(event, true));
         textarea.addEventListener("input", scheduleRender);
 
         /** Se o cursor ficar dentro de um marcador (por clique ou setas), a região expande-se. */

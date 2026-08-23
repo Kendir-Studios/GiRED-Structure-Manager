@@ -2,6 +2,13 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [Por lançar]
+
+### Corrigido
+
+- O marcador `⋯` das regiões colapsadas deixou de acrescentar largura na camada colorida, o que fazia o caret parecer desalinhado nas linhas com colapsos
+- `Ctrl+C`/`Ctrl+X` (incluindo após `Ctrl+A`) copiam sempre o JSON completo: as regiões colapsadas são expandidas no texto que vai para a área de transferência, e uma seleção nunca corta um marcador ao meio
+
 ## [2.0.3] - 2026-08-22
 
 ### Corrigido
