@@ -2,7 +2,7 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
-## [Por lançar]
+## [2.1.0] - 2026-08-24
 
 ### Corrigido
 
