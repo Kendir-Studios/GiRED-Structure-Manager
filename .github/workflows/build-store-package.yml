@@ -80,6 +80,7 @@ jobs:
             review-sidebar-control.js
             version-sidebar-control.js
             version-comments-search.js
+            version-cd-counter.js
             version-comment-location-pill.js
             content.js
             cms-dropdowns.js

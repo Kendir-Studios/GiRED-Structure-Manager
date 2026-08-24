@@ -2,6 +2,15 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [Por lançar]
+
+### Adicionado
+
+- Novo contador no Controlo de Versões, imediatamente abaixo do contador nativo de bloqueantes: `N problema(s) em aberto (Sev C/D)`
+- O valor é calculado como `Aberto` (estatísticas nativas) menos os bloqueantes A/B, pelo que não depende da lista paginada
+- Fica verde quando chega a zero; é reposto automaticamente quando o GiRED recria o painel
+- Novo `version-cd-counter.js`
+
 ## [2.1.0] - 2026-08-24
 
 ### Corrigido
