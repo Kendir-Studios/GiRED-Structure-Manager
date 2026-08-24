@@ -2,6 +2,12 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [Por lançar]
+
+### Alterado
+
+- O contador de Sev C/D ficou mais compacto e com espaçamento antes das estatísticas de severidade, para o topo do painel respirar melhor
+
 ## [2.2.0] - 2026-08-24
 
 ### Adicionado
