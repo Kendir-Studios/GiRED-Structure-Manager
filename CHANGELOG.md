@@ -2,6 +2,12 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [Por lançar]
+
+### Adicionado
+
+- Novo interruptor `Contadores A/B e C/D` no popup: permite desativar os cartões de contagem do Controlo de Versões e voltar ao contador nativo do GiRED (preferência `giredVcCountersEnabled`, ativa por omissão)
+
 ## [2.3.0] - 2026-08-24
 
 ### Alterado

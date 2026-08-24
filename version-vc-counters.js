@@ -9,6 +9,7 @@
     const BASE_CLASS = "gired-structure-mapper-vc-counter";
     const WRAPPER_CLASS = "gired-structure-mapper-vc-counters";
     const NATIVE_HIDDEN_ATTR = "data-gired-native-counter-hidden";
+    const COUNTERS_KEY = "giredVcCountersEnabled";
     const BLOCKING_PATTERN = /problema\(?s?\)?\s+bloqueante/i;
     const LOAD_WAIT_MS = 1400;
     const MAX_LOAD_ROUNDS = 220;
@@ -20,10 +21,16 @@
     let lastLoadFinishedAt = 0;
     let cachedCounts = null;
     let cachedIsPartial = false;
+    let countersEnabled = true;
 
     /** Indica se a extensão está atualmente ativa na página. */
     function isExtensionEnabled() {
         return !document.documentElement.classList.contains("gired-structure-mapper-disabled");
+    }
+
+    /** Indica se os cartões de contagem estão ativos (extensão ligada + preferência do popup). */
+    function isFeatureActive() {
+        return isExtensionEnabled() && countersEnabled;
     }
 
     /** Indica se existe algum filtro nativo ativo (a lista deixa de representar o total global). */
@@ -90,7 +97,7 @@
             let idleRounds = 0;
 
             for (let round = 0; round < MAX_LOAD_ROUNDS; round += 1) {
-                if (!isExtensionEnabled() || hasNativeFilters()) break;
+                if (!isFeatureActive() || hasNativeFilters()) break;
                 const button = getLoadMoreButton();
                 if (!button) break;
 
@@ -192,7 +199,11 @@
     /** Sincroniza os dois cartões com o estado atual da lista. */
     function updateCounters() {
         updateScheduled = false;
-        if (!isExtensionEnabled()) return;
+        if (!isFeatureActive()) {
+            restoreNativeCounter();
+            document.querySelector(`.${WRAPPER_CLASS}`)?.remove();
+            return;
+        }
 
         const sidebar = document.querySelector(SIDEBAR_SELECTOR);
         if (!sidebar) return;
@@ -269,16 +280,27 @@
 
     if (chrome?.storage?.onChanged) {
         chrome.storage.onChanged.addListener((changes, areaName) => {
-            if (areaName !== "local" || !changes.giredStructureMapperEnabled) return;
-            if (changes.giredStructureMapperEnabled.newValue === false) {
-                restoreNativeCounter();
-                document.querySelector(`.${WRAPPER_CLASS}`)?.remove();
-            } else {
+            if (areaName !== "local") return;
+            if (changes[COUNTERS_KEY]) {
+                countersEnabled = changes[COUNTERS_KEY].newValue !== false;
+            }
+            if (changes.giredStructureMapperEnabled || changes[COUNTERS_KEY]) {
                 scheduleUpdate();
             }
         });
     }
 
-    scheduleUpdate();
+    /** Lê a preferência guardada antes da primeira renderização. */
+    async function initialize() {
+        try {
+            const result = await chrome.storage.local.get(COUNTERS_KEY);
+            countersEnabled = result[COUNTERS_KEY] !== false;
+        } catch (_) {
+            countersEnabled = true;
+        }
+        scheduleUpdate();
+    }
+
+    void initialize();
     startObserver();
 })();
