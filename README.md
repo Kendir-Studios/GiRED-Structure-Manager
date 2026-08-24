@@ -19,7 +19,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mantém o painel nativo de Controlo de Versões no lado esquerdo do GiRED
 - Faz a página adaptar-se automaticamente à largura do Controlo de Versões, evitando que este tape o conteúdo
 - Adiciona pesquisa rápida aos comentários do Controlo de Versões
-- Mostra um contador de problemas C/D em aberto por baixo do contador nativo de bloqueantes
+- Substitui o contador nativo de bloqueantes por dois cartões (Sev A/B e Sev C/D) que incluem erros reabertos
 - Mostra uma pill numérica como `SA01/AT05` em cada comentário cuja localização possa ser mapeada para a estrutura
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
 - Verifica e instala novas versões automaticamente em segundo plano

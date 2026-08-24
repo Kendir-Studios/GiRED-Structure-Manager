@@ -22,7 +22,7 @@
   "content_scripts": [
     {
       "matches": ["https://apps.gired.pt/*", "https://cms.gired.pt/*"],
-      "js": ["toggle-control.js", "review-sidebar-control.js", "version-sidebar-control.js", "version-comments-search.js", "version-cd-counter.js", "version-comment-location-pill.js", "content.js", "cms-dropdowns.js", "cms-code-editor.js", "cms-sequence-nav.js"],
+      "js": ["toggle-control.js", "review-sidebar-control.js", "version-sidebar-control.js", "version-comments-search.js", "version-vc-counters.js", "version-comment-location-pill.js", "content.js", "cms-dropdowns.js", "cms-code-editor.js", "cms-sequence-nav.js"],
       "css": ["styles.css", "version-sidebar.css", "context-hide.css", "cms-editor-modal.css"],
       "run_at": "document_idle"
     },

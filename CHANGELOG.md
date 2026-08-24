@@ -8,6 +8,15 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 - O contador de Sev C/D ficou mais compacto e com espaçamento antes das estatísticas de severidade, para o topo do painel respirar melhor
 
+## [Por lançar]
+
+### Alterado
+
+- Os contadores do Controlo de Versões passam a ser dois cartões compactos da extensão — `Sev A/B` (bloqueantes) e `Sev C/D` — e o contador nativo de bloqueantes é ocultado
+- As contagens passam a incluir erros reabertos: são calculadas a partir dos próprios comentários (severidade + estado), depois de a extensão garantir o carregamento integral da lista
+- Com filtros nativos ativos, mantém-se a última contagem global conhecida; se a lista completa não puder ser carregada, o cartão indica contagem parcial no tooltip
+- `version-cd-counter.js` substituído por `version-vc-counters.js`
+
 ## [2.2.0] - 2026-08-24
 
 ### Adicionado
