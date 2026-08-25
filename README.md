@@ -165,7 +165,7 @@ Cada push para `main` gera o ZIP da Chrome Web Store. Quando a `version` do `man
 
 ## Versão atual
 
-`2.3.0`
+`2.3.1`
 
 ## Versionamento
 
