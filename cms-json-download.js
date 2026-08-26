@@ -152,73 +152,15 @@
             .map((tab, index) => ({
                 href: tab.dataset.href,
                 title: (tab.dataset.pageTitle || "").trim(),
-                code: index === 0 ? "INTROD" : `AT${String(index).padStart(2, "0")}`
+                code: index === 0 ? "INTROD" : `AT${String(index).padStart(2, "0")}`,
+                active: tab.classList.contains("active")
+                    || tab.getAttribute("aria-selected") === "true"
+                    || tab.getAttribute("aria-expanded") === "true"
             }));
     }
 
-    /** Carrega uma unidade como navegação normal quando o CMS rejeita o fetch com HTTP 400. */
-    function loadUnitDocumentInFrame(url) {
-        return new Promise((resolve, reject) => {
-            const frame = document.createElement("iframe");
-            frame.hidden = true;
-            frame.setAttribute("aria-hidden", "true");
-            frame.setAttribute("sandbox", "allow-same-origin");
-
-            const cleanup = () => {
-                window.clearTimeout(timeout);
-                frame.remove();
-            };
-
-            const timeout = window.setTimeout(() => {
-                cleanup();
-                reject(new Error("tempo esgotado"));
-            }, 20000);
-
-            frame.addEventListener("load", () => {
-                try {
-                    const html = frame.contentDocument?.documentElement?.outerHTML;
-                    if (!html) throw new Error("resposta vazia");
-                    const doc = new DOMParser().parseFromString(html, "text/html");
-                    cleanup();
-                    resolve(doc);
-                } catch (error) {
-                    cleanup();
-                    reject(error);
-                }
-            }, { once: true });
-
-            frame.addEventListener("error", () => {
-                cleanup();
-                reject(new Error("falha ao carregar a unidade"));
-            }, { once: true });
-
-            frame.src = url;
-            document.body.appendChild(frame);
-        });
-    }
-
-    /** Vai buscar os JSONs (já formatados) das dinâmicas de uma unidade da SA. */
-    async function fetchUnitDynamics(href) {
-        const url = new URL(href, location.href).href;
-        let doc;
-
-        try {
-            const response = await fetch(url, {
-                credentials: "include",
-                headers: {
-                    "Accept": "text/html,application/xhtml+xml"
-                }
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            doc = new DOMParser().parseFromString(await response.text(), "text/html");
-        } catch (fetchError) {
-            try {
-                doc = await loadUnitDocumentInFrame(url);
-            } catch (frameError) {
-                throw new Error(`${fetchError.message}; navegação alternativa: ${frameError.message}`);
-            }
-        }
-
+    /** Extrai e formata as dinâmicas SAGE já renderizadas num documento. */
+    function extractDynamics(doc) {
         return Array.from(doc.querySelectorAll(`${WRAPPER_SELECTOR} ${SAGE_CONTENT_SELECTOR}`))
             .map(element => {
                 let text = decodeContent(element.getAttribute("data-content") || "");
@@ -229,6 +171,96 @@
                 }
                 return text;
             });
+    }
+
+    /** Carrega uma unidade como navegação normal e espera pela renderização do CMS. */
+    function loadUnitDocumentInFrame(url) {
+        return new Promise((resolve, reject) => {
+            const frame = document.createElement("iframe");
+            frame.hidden = true;
+            frame.setAttribute("aria-hidden", "true");
+
+            let settled = false;
+            let poll = null;
+
+            const cleanup = () => {
+                if (poll) window.clearInterval(poll);
+                window.clearTimeout(timeout);
+                frame.remove();
+            };
+
+            const finish = () => {
+                if (settled) return;
+                try {
+                    const html = frame.contentDocument?.documentElement?.outerHTML;
+                    if (!html) throw new Error("resposta vazia");
+                    settled = true;
+                    cleanup();
+                    resolve(new DOMParser().parseFromString(html, "text/html"));
+                } catch (error) {
+                    settled = true;
+                    cleanup();
+                    reject(error);
+                }
+            };
+
+            const timeout = window.setTimeout(finish, 15000);
+
+            frame.addEventListener("load", () => {
+                // O Studio injeta os XBlocks depois do load; aguarda até aparecer uma
+                // dinâmica ou até ao limite, que também cobre unidades legitimamente vazias.
+                poll = window.setInterval(() => {
+                    try {
+                        if (frame.contentDocument?.querySelector(SAGE_CONTENT_SELECTOR)) finish();
+                    } catch (error) {
+                        settled = true;
+                        cleanup();
+                        reject(error);
+                    }
+                }, 250);
+            }, { once: true });
+
+            frame.addEventListener("error", () => {
+                if (settled) return;
+                settled = true;
+                cleanup();
+                reject(new Error("falha ao carregar a unidade"));
+            }, { once: true });
+
+            frame.src = url;
+            document.body.appendChild(frame);
+        });
+    }
+
+    /** Vai buscar os JSONs (já formatados) das dinâmicas de uma unidade da SA. */
+    async function fetchUnitDynamics(href, active) {
+        // A unidade aberta já está totalmente renderizada e é a fonte mais fiável.
+        if (active) return extractDynamics(document);
+
+        const url = new URL(href, location.href).href;
+        let fetchError = null;
+
+        try {
+            const response = await fetch(url, {
+                credentials: "include",
+                headers: {
+                    "Accept": "text/html,application/xhtml+xml"
+                }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+            const dynamics = extractDynamics(doc);
+            if (dynamics.length) return dynamics;
+        } catch (error) {
+            fetchError = error;
+        }
+
+        try {
+            return extractDynamics(await loadUnitDocumentInFrame(url));
+        } catch (frameError) {
+            const detail = fetchError ? `${fetchError.message}; ` : "";
+            throw new Error(`${detail}navegação alternativa: ${frameError.message}`);
+        }
     }
 
     /** Exporta um ZIP com os JSONs de todas as dinâmicas da SA atual. */
@@ -251,7 +283,7 @@
                 const tab = tabs[i];
                 label.textContent = `A exportar ${i + 1}/${tabs.length}…`;
                 try {
-                    const dynamics = await fetchUnitDynamics(tab.href);
+                    const dynamics = await fetchUnitDynamics(tab.href, tab.active);
                     dynamics.forEach((text, index) => {
                         entries.push({
                             name: `${[...prefix, tab.code].join("_")}_DIN(${index + 1}).json`,
