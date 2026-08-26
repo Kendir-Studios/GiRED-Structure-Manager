@@ -15,6 +15,11 @@
         return (value || "").replace(/\s+/g, "").trim();
     }
 
+    /** Código sequencial da dinâmica sem parênteses (ex.: DIN01). */
+    function dynamicCode(index) {
+        return `DIN${String(index).padStart(2, "0")}`;
+    }
+
     /** O conteúdo chega duplamente codificado; espelha a descodificação do próprio componente. */
     function decodeContent(raw) {
         return raw
@@ -70,6 +75,131 @@
         window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
+    const MEDIA_PATH_RE = /\.(?:png|jpe?g|gif|webp|svg|bmp|avif|mp3|wav|ogg|m4a|aac|flac|mp4|webm)(?:$|[?#])/i;
+    const MEDIA_REFERENCE_RE = /(?:https?:\/\/|\/\/|\/|\.\.\/|\.\/)[^"'\s<>]+?\.(?:png|jpe?g|gif|webp|svg|bmp|avif|mp3|wav|ogg|m4a|aac|flac|mp4|webm)(?:\?[^"'\s<>]*)?/gi;
+
+    function mediaExtensionFromType(type) {
+        const normalized = (type || "").split(";")[0].trim().toLowerCase();
+        return {
+            "image/png": ".png", "image/jpeg": ".jpg", "image/gif": ".gif",
+            "image/webp": ".webp", "image/svg+xml": ".svg", "image/bmp": ".bmp",
+            "image/avif": ".avif", "audio/mpeg": ".mp3", "audio/wav": ".wav",
+            "audio/ogg": ".ogg", "audio/mp4": ".m4a", "audio/aac": ".aac",
+            "audio/flac": ".flac", "video/mp4": ".mp4", "video/webm": ".webm"
+        }[normalized] || "";
+    }
+
+    function safeFilename(value) {
+        return (value || "media")
+            .replace(/[\\/:*?"<>|]/g, "_")
+            .replace(/\s+/g, "_")
+            .replace(/^\.+|\.+$/g, "") || "media";
+    }
+
+    function resolveMediaUrl(value, baseUrl) {
+        if (typeof value !== "string" || !value.trim()) return null;
+        if (value.startsWith("data:image/") || value.startsWith("data:audio/") || value.startsWith("data:video/")) {
+            return value;
+        }
+        try {
+            const url = new URL(value, baseUrl);
+            if (!["http:", "https:"].includes(url.protocol)) return null;
+            return MEDIA_PATH_RE.test(url.href) ? url.href : null;
+        } catch (_) {
+            return null;
+        }
+    }
+
+    function uniqueMediaName(url, response, jsonStem, state) {
+        let basename = "";
+        if (!url.startsWith("data:")) {
+            try {
+                basename = decodeURIComponent(new URL(url).pathname.split("/").pop() || "");
+            } catch (_) {
+                basename = "";
+            }
+        }
+
+        const typeExtension = mediaExtensionFromType(response.headers.get("content-type"));
+        basename = safeFilename(basename || `media${typeExtension}`);
+        if (!/\.[a-z0-9]{2,5}$/i.test(basename) && typeExtension) basename += typeExtension;
+
+        const dot = basename.lastIndexOf(".");
+        const root = dot > 0 ? basename.slice(0, dot) : basename;
+        const extension = dot > 0 ? basename.slice(dot) : "";
+        const prefix = safeFilename(jsonStem);
+        let candidate = `${prefix}_${root}${extension}`;
+        let number = 2;
+        while (state.usedNames.has(candidate.toLowerCase())) {
+            candidate = `${prefix}_${root}_${number++}${extension}`;
+        }
+        state.usedNames.add(candidate.toLowerCase());
+        return candidate;
+    }
+
+    async function downloadMediaReference(url, jsonStem, entries, state, problems) {
+        if (state.byUrl.has(url)) return state.byUrl.get(url);
+
+        try {
+            const response = await fetch(url, { credentials: "include" });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const filename = uniqueMediaName(url, response, jsonStem, state);
+            entries.push({
+                name: filename,
+                data: new Uint8Array(await response.arrayBuffer())
+            });
+            state.byUrl.set(url, filename);
+            return filename;
+        } catch (error) {
+            problems.push(`Média ${url.slice(0, 180)}: ${error.message}`);
+            return null;
+        }
+    }
+
+    async function localizeMediaString(value, baseUrl, jsonStem, entries, state, problems) {
+        const wholeUrl = resolveMediaUrl(value, baseUrl);
+        if (wholeUrl) {
+            return await downloadMediaReference(wholeUrl, jsonStem, entries, state, problems) || value;
+        }
+
+        const references = Array.from(new Set(value.match(MEDIA_REFERENCE_RE) || []));
+        let localized = value;
+        for (const reference of references) {
+            const url = resolveMediaUrl(reference, baseUrl);
+            if (!url) continue;
+            const filename = await downloadMediaReference(url, jsonStem, entries, state, problems);
+            if (filename) localized = localized.split(reference).join(filename);
+        }
+        return localized;
+    }
+
+    async function localizeMedia(value, baseUrl, jsonStem, entries, state, problems) {
+        if (typeof value === "string") {
+            return localizeMediaString(value, baseUrl, jsonStem, entries, state, problems);
+        }
+        if (Array.isArray(value)) {
+            return Promise.all(value.map(item => localizeMedia(item, baseUrl, jsonStem, entries, state, problems)));
+        }
+        if (value && typeof value === "object") {
+            const localized = {};
+            for (const [key, item] of Object.entries(value)) {
+                localized[key] = await localizeMedia(item, baseUrl, jsonStem, entries, state, problems);
+            }
+            return localized;
+        }
+        return value;
+    }
+
+    async function packageDynamicJson(dynamic, jsonStem, entries, state, problems) {
+        try {
+            const parsed = JSON.parse(dynamic.text);
+            const localized = await localizeMedia(parsed, dynamic.baseUrl, jsonStem, entries, state, problems);
+            return JSON.stringify(localized, null, 2);
+        } catch (_) {
+            return dynamic.text;
+        }
+    }
+
     // ---------- ZIP mínimo (entradas STORED, sem compressão) ----------
 
     const CRC_TABLE = (() => {
@@ -105,7 +235,9 @@
 
         for (const entry of entries) {
             const name = encoder.encode(entry.name);
-            const data = encoder.encode(entry.text);
+            const data = entry.data instanceof Uint8Array
+                ? entry.data
+                : encoder.encode(entry.text || "");
             const crc = crc32(data);
 
             // Cabeçalho local + nome + dados (flag 0x0800 = nome em UTF-8).
@@ -142,7 +274,7 @@
 
         const { sa, at } = await getContextCodes();
         const parts = [getCourseNumber(), sa, at].filter(Boolean);
-        parts.push(`DIN(${getDynamicIndex(wrapper)})`);
+        parts.push(dynamicCode(getDynamicIndex(wrapper)));
         downloadBlob(`${parts.join("_")}.json`, new Blob([text], { type: "application/json" }));
     }
 
@@ -160,7 +292,7 @@
     }
 
     /** Extrai e formata as dinâmicas SAGE já renderizadas num documento. */
-    function extractDynamics(doc) {
+    function extractDynamics(doc, baseUrl) {
         return Array.from(doc.querySelectorAll(`${WRAPPER_SELECTOR} ${SAGE_CONTENT_SELECTOR}`))
             .map(element => {
                 let text = decodeContent(element.getAttribute("data-content") || "");
@@ -169,7 +301,7 @@
                 } catch (_) {
                     // JSON inválido: entra no ZIP em bruto na mesma.
                 }
-                return text;
+                return { text, baseUrl };
             });
     }
 
@@ -235,7 +367,7 @@
     /** Vai buscar os JSONs (já formatados) das dinâmicas de uma unidade da SA. */
     async function fetchUnitDynamics(href, active) {
         // A unidade aberta já está totalmente renderizada e é a fonte mais fiável.
-        if (active) return extractDynamics(document);
+        if (active) return extractDynamics(document, location.href);
 
         const url = new URL(href, location.href).href;
         let fetchError = null;
@@ -249,14 +381,14 @@
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const doc = new DOMParser().parseFromString(await response.text(), "text/html");
-            const dynamics = extractDynamics(doc);
+            const dynamics = extractDynamics(doc, url);
             if (dynamics.length) return dynamics;
         } catch (error) {
             fetchError = error;
         }
 
         try {
-            return extractDynamics(await loadUnitDocumentInFrame(url));
+            return extractDynamics(await loadUnitDocumentInFrame(url), url);
         } catch (frameError) {
             const detail = fetchError ? `${fetchError.message}; ` : "";
             throw new Error(`${detail}navegação alternativa: ${frameError.message}`);
@@ -278,18 +410,20 @@
 
             const entries = [];
             const problems = [];
+            const mediaState = { byUrl: new Map(), usedNames: new Set() };
 
             for (let i = 0; i < tabs.length; i++) {
                 const tab = tabs[i];
                 label.textContent = `A exportar ${i + 1}/${tabs.length}…`;
                 try {
                     const dynamics = await fetchUnitDynamics(tab.href, tab.active);
-                    dynamics.forEach((text, index) => {
-                        entries.push({
-                            name: `${[...prefix, tab.code].join("_")}_DIN(${index + 1}).json`,
-                            text
-                        });
-                    });
+                    for (let index = 0; index < dynamics.length; index++) {
+                        const jsonStem = `${[...prefix, tab.code].join("_")}_${dynamicCode(index + 1)}`;
+                        const text = await packageDynamicJson(
+                            dynamics[index], jsonStem, entries, mediaState, problems
+                        );
+                        entries.push({ name: `${jsonStem}.json`, text });
+                    }
                 } catch (error) {
                     problems.push(`${tab.code} (${tab.title}): ${error.message}`);
                 }
