@@ -437,7 +437,7 @@
             if (problems.length) {
                 entries.push({
                     name: `${prefix.join("_") || "SA"}_AVISOS.txt`,
-                    text: `Unidades que não foi possível exportar:\n${problems.join("\n")}\n`
+                    text: `Avisos durante a exportação:\n${problems.join("\n")}\n`
                 });
             }
 
