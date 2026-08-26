@@ -4,6 +4,12 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [2.6.1] - 2026-08-26
+
+### Corrigido
+
+- O download dos JSONs de uma SA deixa de falhar com `HTTP 400`: os endereços das unidades são normalizados, os pedidos incluem a sessão do CMS e, quando o servidor rejeita o pedido em segundo plano, a extensão usa uma navegação invisível da mesma origem como fallback
+
 ## [2.6.0] - 2026-08-26
 
 ### Adicionado
