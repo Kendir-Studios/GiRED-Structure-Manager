@@ -2,6 +2,14 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [Por lançar]
+
+### Corrigido
+
+- As vistas de edição dos componentes `Image Pairing` e `Memory Game` deixaram de ter as imagens e os campos sobrepostos: cada par passa a ser um cartão numa grelha, com as duas imagens lado a lado e os campos de ficheiro/alt text empilhados por baixo de cada imagem
+- Os clips de áudio, os textos editáveis (introdução, pergunta, feedbacks) e os respetivos campos ganharam contornos e etiquetas claras, para ser óbvio onde se pode escrever; estes estilos são partilhados (`sage-editable-*`), pelo que outros componentes SAGE que usem os mesmos campos beneficiam automaticamente
+- A caixa `Question image` do Memory Game deixou de cortar os campos (tinha 120px fixos) e o estado `No image` passou a ser visível
+
 ## [2.3.1] - 2026-08-24
 
 ### Adicionado

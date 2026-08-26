@@ -243,6 +243,279 @@ html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .xb
     background: rgba(255, 255, 255, 0.04);
 }
 
+/* ---------- Editores visuais dos componentes SAGE (vista de edição) ---------- */
+/* Os estilos nativos dão ~160px a cada cartão de par e não estilizam os campos,
+   deixando imagens e inputs sobrepostos. Cada par passa a ser um cartão largo
+   com as duas imagens lado a lado. Cobre o Image Pairing (imgpair-*) e o
+   Memory Game (mg-*); os campos partilhados (sage-editable-*) ficam genéricos. */
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-edit-grid,
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-edit-grid {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr)) !important;
+    gap: 16px !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 16px 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-edit-pair,
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-edit-pair {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 10px !important;
+    box-sizing: border-box !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    border: 1px solid #d0d5dd !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    overflow: visible !important;
+    transform: none !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-edit-pair-label,
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-edit-pair-label {
+    position: static !important;
+    margin: 0 !important;
+    padding: 0 0 6px !important;
+    border-bottom: 1px solid #e6e9ef !important;
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #344054 !important;
+    text-align: left !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-edit-pair-images,
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-edit-pair-images {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) !important;
+    align-items: start !important;
+    gap: 10px !important;
+    width: auto !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-edit-pair-arrow,
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-edit-pair-arrow {
+    position: static !important;
+    align-self: center !important;
+    margin: 0 !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    color: #667085 !important;
+}
+
+/* Cada lado do par: etiqueta, pré-visualização, ficheiro e alt text empilhados.
+   Estas classes são partilhadas por todos os componentes SAGE em modo de edição. */
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-image-name {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    float: none !important;
+    transform: none !important;
+    overflow: visible !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-image-name__label {
+    position: static !important;
+    margin: 0 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #667085 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-image-name img {
+    position: static !important;
+    display: block !important;
+    box-sizing: border-box !important;
+    width: auto !important;
+    max-width: 100% !important;
+    height: auto !important;
+    max-height: 88px !important;
+    margin: 0 auto !important;
+    padding: 4px !important;
+    border: 1px solid #e6e9ef !important;
+    border-radius: 6px !important;
+    background: #fafbfc !important;
+    object-fit: contain !important;
+    float: none !important;
+    transform: none !important;
+}
+
+/* Sem imagem escolhida, mostra a caixa "No image" (o CSS nativo esconde-a). */
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-image-name__placeholder {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    min-height: 64px !important;
+    border: 1px dashed #cbd2dc !important;
+    border-radius: 6px !important;
+    background: #fafbfc !important;
+    color: #98a2b3 !important;
+    font-size: 12px !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-image-name__alt-text {
+    position: static !important;
+    display: block !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-image-name__input,
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-audio-name__input {
+    position: static !important;
+    box-sizing: border-box !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 5px 8px !important;
+    border: 1px solid #cfd4dc !important;
+    border-radius: 4px !important;
+    background: #fff !important;
+    color: #344054 !important;
+    font-family: inherit !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-image-name__input:focus,
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-audio-name__input:focus {
+    border-color: #0075b4 !important;
+    outline: none !important;
+    box-shadow: 0 0 0 2px rgba(0, 117, 180, 0.18) !important;
+}
+
+/* Secção de áudio: um cartão por clip, com os campos empilhados. */
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-audio-stimulus--edit {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr)) !important;
+    gap: 12px !important;
+    margin: 0 0 16px !important;
+    padding: 0 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-audio-edit-row {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    box-sizing: border-box !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    border: 1px solid #d0d5dd !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-audio-edit-label {
+    font-size: 13px !important;
+    font-weight: 700 !important;
+    color: #344054 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-audio-edit-help {
+    font-size: 11px !important;
+    color: #667085 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-audio-name {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 4px !important;
+    margin: 0 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable-audio-name__label {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #667085 !important;
+}
+
+/* Campos de texto editáveis (introdução, pergunta, feedbacks, títulos de áudio):
+   ganham um contorno tracejado para ser óbvio onde se pode escrever. */
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable[contenteditable] {
+    box-sizing: border-box;
+    min-height: 1.6em;
+    padding: 6px 8px !important;
+    border: 1px dashed #cbd2dc !important;
+    border-radius: 6px !important;
+    transition: border-color 0.12s ease, background-color 0.12s ease;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable[contenteditable]:hover {
+    border-color: #98a2b3 !important;
+    background-color: #fafbfc !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-react-xblock .sage-editable[contenteditable]:focus {
+    border: 1px solid #0075b4 !important;
+    outline: none !important;
+    background-color: #fff !important;
+    box-shadow: 0 0 0 2px rgba(0, 117, 180, 0.18) !important;
+}
+
+/* Imagem da pergunta do Memory Game: a caixa nativa tem 120px fixos com
+   overflow escondido e cortava os campos; passa a um cartão que cresce. */
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-question-image:has(.sage-editable-image-name) {
+    box-sizing: border-box !important;
+    width: auto !important;
+    max-width: 360px !important;
+    height: auto !important;
+    margin: 0 0 12px !important;
+    padding: 12px !important;
+    border: 1px solid #d0d5dd !important;
+    border-radius: 8px !important;
+    background: #fff !important;
+    overflow: visible !important;
+    flex-shrink: 1 !important;
+}
+
+/* Feedbacks no fim: etiqueta seguida do respetivo campo, sem sobreposições. */
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-edit-feedback,
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-edit-feedback {
+    position: static !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 6px !important;
+    margin: 16px 0 0 !important;
+    padding: 0 !important;
+}
+
+html:not(.gired-structure-mapper-disabled) .sage-imagepairing .imgpair-edit-feedback-label,
+html:not(.gired-structure-mapper-disabled) .sage-memorygame .mg-edit-feedback-label {
+    margin: 6px 0 0 !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #344054 !important;
+}
+
 /* Ao desligar a extensão, o editor desaparece e a textarea nativa volta ao normal. */
 html.gired-structure-mapper-disabled .gired-code-editor {
     display: contents !important;
