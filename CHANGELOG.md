@@ -4,6 +4,12 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [2.6.2] - 2026-08-26
+
+### Corrigido
+
+- O exportador da SA passa a usar diretamente as dinâmicas já renderizadas da unidade aberta e aguarda a renderização JavaScript das restantes unidades, evitando o falso estado `Sem dinâmicas nesta SA` quando o HTML inicial ainda não contém os componentes SAGE
+
 ## [2.6.1] - 2026-08-26
 
 ### Corrigido
