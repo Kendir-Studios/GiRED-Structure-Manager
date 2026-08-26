@@ -76,7 +76,7 @@
     }
 
     const MEDIA_PATH_RE = /\.(?:png|jpe?g|gif|webp|svg|bmp|avif|mp3|wav|ogg|m4a|aac|flac|mp4|webm)(?:$|[?#])/i;
-    const MEDIA_REFERENCE_RE = /(?:https?:\/\/|\/\/|\/|\.\.\/|\.\/)[^"'\s<>]+?\.(?:png|jpe?g|gif|webp|svg|bmp|avif|mp3|wav|ogg|m4a|aac|flac|mp4|webm)(?:\?[^"'\s<>]*)?/gi;
+    const MEDIA_REFERENCE_RE = /(?:https?:\/\/|\/\/|\/|\.\.\/|\.\/)?[a-z0-9_%+().@-]+(?:\/[a-z0-9_%+().@-]+)*\.(?:png|jpe?g|gif|webp|svg|bmp|avif|mp3|wav|ogg|m4a|aac|flac|mp4|webm)(?:\?[^"'\s<>]*)?/gi;
 
     function mediaExtensionFromType(type) {
         const normalized = (type || "").split(";")[0].trim().toLowerCase();
@@ -96,11 +96,26 @@
             .replace(/^\.+|\.+$/g, "") || "media";
     }
 
-    function resolveMediaUrl(value, baseUrl) {
+    function mediaBasename(value) {
+        try {
+            const pathname = value.startsWith("data:")
+                ? ""
+                : new URL(value, location.href).pathname;
+            return decodeURIComponent(pathname.split("/").pop() || "").toLowerCase();
+        } catch (_) {
+            return decodeURIComponent(String(value).split(/[?#]/)[0].split("/").pop() || "").toLowerCase();
+        }
+    }
+
+    function resolveMediaUrl(value, baseUrl, mediaLookup) {
         if (typeof value !== "string" || !value.trim()) return null;
         if (value.startsWith("data:image/") || value.startsWith("data:audio/") || value.startsWith("data:video/")) {
             return value;
         }
+
+        const renderedUrl = mediaLookup?.[mediaBasename(value)];
+        if (renderedUrl) return renderedUrl;
+
         try {
             const url = new URL(value, baseUrl);
             if (!["http:", "https:"].includes(url.protocol)) return null;
@@ -108,6 +123,25 @@
         } catch (_) {
             return null;
         }
+    }
+
+    function getRenderedMediaLookup(element, baseUrl) {
+        const lookup = {};
+        element.querySelectorAll("img[src], audio[src], video[src], source[src]").forEach(media => {
+            const source = media.currentSrc || media.getAttribute("src") || "";
+            if (!source) return;
+            try {
+                const url = new URL(source, baseUrl).href;
+                const names = [
+                    mediaBasename(source),
+                    mediaBasename(media.getAttribute("src") || "")
+                ].filter(Boolean);
+                names.forEach(name => { lookup[name] = url; });
+            } catch (_) {
+                // Um recurso inválido não impede a exportação dos restantes.
+            }
+        });
+        return lookup;
     }
 
     function uniqueMediaName(url, response, jsonStem, state) {
@@ -156,8 +190,8 @@
         }
     }
 
-    async function localizeMediaString(value, baseUrl, jsonStem, entries, state, problems) {
-        const wholeUrl = resolveMediaUrl(value, baseUrl);
+    async function localizeMediaString(value, baseUrl, mediaLookup, jsonStem, entries, state, problems) {
+        const wholeUrl = resolveMediaUrl(value, baseUrl, mediaLookup);
         if (wholeUrl) {
             return await downloadMediaReference(wholeUrl, jsonStem, entries, state, problems) || value;
         }
@@ -165,7 +199,7 @@
         const references = Array.from(new Set(value.match(MEDIA_REFERENCE_RE) || []));
         let localized = value;
         for (const reference of references) {
-            const url = resolveMediaUrl(reference, baseUrl);
+            const url = resolveMediaUrl(reference, baseUrl, mediaLookup);
             if (!url) continue;
             const filename = await downloadMediaReference(url, jsonStem, entries, state, problems);
             if (filename) localized = localized.split(reference).join(filename);
@@ -173,17 +207,17 @@
         return localized;
     }
 
-    async function localizeMedia(value, baseUrl, jsonStem, entries, state, problems) {
+    async function localizeMedia(value, baseUrl, mediaLookup, jsonStem, entries, state, problems) {
         if (typeof value === "string") {
-            return localizeMediaString(value, baseUrl, jsonStem, entries, state, problems);
+            return localizeMediaString(value, baseUrl, mediaLookup, jsonStem, entries, state, problems);
         }
         if (Array.isArray(value)) {
-            return Promise.all(value.map(item => localizeMedia(item, baseUrl, jsonStem, entries, state, problems)));
+            return Promise.all(value.map(item => localizeMedia(item, baseUrl, mediaLookup, jsonStem, entries, state, problems)));
         }
         if (value && typeof value === "object") {
             const localized = {};
             for (const [key, item] of Object.entries(value)) {
-                localized[key] = await localizeMedia(item, baseUrl, jsonStem, entries, state, problems);
+                localized[key] = await localizeMedia(item, baseUrl, mediaLookup, jsonStem, entries, state, problems);
             }
             return localized;
         }
@@ -193,7 +227,9 @@
     async function packageDynamicJson(dynamic, jsonStem, entries, state, problems) {
         try {
             const parsed = JSON.parse(dynamic.text);
-            const localized = await localizeMedia(parsed, dynamic.baseUrl, jsonStem, entries, state, problems);
+            const localized = await localizeMedia(
+                parsed, dynamic.baseUrl, dynamic.mediaLookup, jsonStem, entries, state, problems
+            );
             return JSON.stringify(localized, null, 2);
         } catch (_) {
             return dynamic.text;
@@ -301,7 +337,11 @@
                 } catch (_) {
                     // JSON inválido: entra no ZIP em bruto na mesma.
                 }
-                return { text, baseUrl };
+                return {
+                    text,
+                    baseUrl,
+                    mediaLookup: getRenderedMediaLookup(element, baseUrl)
+                };
             });
     }
 
@@ -314,6 +354,7 @@
 
             let settled = false;
             let poll = null;
+            let renderedAt = 0;
 
             const cleanup = () => {
                 if (poll) window.clearInterval(poll);
@@ -343,7 +384,10 @@
                 // dinâmica ou até ao limite, que também cobre unidades legitimamente vazias.
                 poll = window.setInterval(() => {
                     try {
-                        if (frame.contentDocument?.querySelector(SAGE_CONTENT_SELECTOR)) finish();
+                        if (frame.contentDocument?.querySelector(SAGE_CONTENT_SELECTOR)) {
+                            if (!renderedAt) renderedAt = Date.now();
+                            if (Date.now() - renderedAt >= 1000) finish();
+                        }
                     } catch (error) {
                         settled = true;
                         cleanup();
