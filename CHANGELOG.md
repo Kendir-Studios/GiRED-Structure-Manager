@@ -4,6 +4,8 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [2.6.0] - 2026-08-26
+
 ### Adicionado
 
 - Sistema de favoritos no menu `Adicionar um Novo Componente` do CMS (novo `cms-quick-add.js`): cada item do submenu `Avançado` ganha uma estrela para marcar/desmarcar, e os favoritos aparecem num painel próprio `Favoritos` por baixo do menu nativo — um clique cria logo o componente pelo fluxo nativo do Studio, sem abrir o `Avançado`
