@@ -6,6 +6,11 @@
     const CHECK_INTERVAL_MINUTES = 60;
     let updateInProgress = false;
 
+    /** Instala imediatamente qualquer atualização que o Chrome já tenha descarregado da store. */
+    chrome.runtime.onUpdateAvailable.addListener(() => {
+        chrome.runtime.reload();
+    });
+
     /** Envia uma mensagem ao helper nativo responsável pelas atualizações. */
     function sendNativeMessage(message) {
         return new Promise((resolve, reject) => {
@@ -20,19 +25,46 @@
         });
     }
 
+    /** Pede ao Chrome que procure já uma atualização na Chrome Web Store. */
+    function requestStoreUpdateCheck() {
+        return new Promise(resolve => {
+            try {
+                chrome.runtime.requestUpdateCheck(status => {
+                    if (chrome.runtime.lastError) {
+                        resolve("no_update");
+                        return;
+                    }
+
+                    resolve(status);
+                });
+            } catch (_) {
+                resolve("no_update");
+            }
+        });
+    }
+
     /** Verifica se existe uma atualização e instala-a automaticamente quando possível. */
     async function checkAndInstallUpdate() {
         if (updateInProgress) return;
         updateInProgress = true;
 
         try {
-            const checkResponse = await sendNativeMessage({ action: "check" });
-            if (!checkResponse?.ok || !checkResponse.updateAvailable) return;
+            // Instalação por clone Git (o manifest carregado sem compactação mantém a "key"):
+            // o helper nativo faz fetch/pull do repositório e a extensão recarrega já.
+            if (chrome.runtime.getManifest().key && chrome.runtime.sendNativeMessage) {
+                const checkResponse = await sendNativeMessage({ action: "check" });
+                if (!checkResponse?.ok || !checkResponse.updateAvailable) return;
 
-            const updateResponse = await sendNativeMessage({ action: "update" });
-            if (!updateResponse?.ok) return;
+                const updateResponse = await sendNativeMessage({ action: "update" });
+                if (!updateResponse?.ok) return;
 
-            chrome.runtime.reload();
+                chrome.runtime.reload();
+                return;
+            }
+
+            // Instalação pela Chrome Web Store: o download fica a cargo do Chrome e o
+            // onUpdateAvailable acima recarrega a extensão assim que estiver pronto.
+            await requestStoreUpdateCheck();
         } catch (_) {
             // O updater pode ainda não estar configurado; o popup continua disponível como fallback.
         } finally {
@@ -42,6 +74,8 @@
 
     /** Garante que existe uma verificação periódica de atualizações. */
     async function ensureUpdateAlarm() {
+        if (!chrome.alarms) return;
+
         const alarm = await chrome.alarms.get(ALARM_NAME);
         if (alarm) return;
 
@@ -61,10 +95,12 @@
         void checkAndInstallUpdate();
     });
 
-    chrome.alarms.onAlarm.addListener(alarm => {
-        if (alarm.name !== ALARM_NAME) return;
-        void checkAndInstallUpdate();
-    });
+    if (chrome.alarms) {
+        chrome.alarms.onAlarm.addListener(alarm => {
+            if (alarm.name !== ALARM_NAME) return;
+            void checkAndInstallUpdate();
+        });
+    }
 
     void ensureUpdateAlarm();
 })();

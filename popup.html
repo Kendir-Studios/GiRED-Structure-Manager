@@ -73,6 +73,35 @@
             </div>
         </section>
 
+        <section class="updates" aria-labelledby="updatesTitle">
+            <div class="section-heading">
+                <span>Atualizações</span>
+            </div>
+
+            <div class="card updates-card">
+                <div class="updates-header">
+                    <div class="updates-copy">
+                        <strong id="updatesTitle">Versão da extensão</strong>
+                        <span id="updateStatus">—</span>
+                    </div>
+                    <span id="latestVersion" class="latest-version" hidden></span>
+                </div>
+
+                <button id="updateButton" class="update-button" type="button">
+                    Verificar atualizações
+                </button>
+
+                <div id="updaterSetup" class="updater-setup" hidden>
+                    <p>O updater local ainda não está configurado neste computador.</p>
+                    <p class="setup-hint">
+                        Windows: executa <strong>INSTALL-WINDOWS.bat</strong><br>
+                        macOS: executa <strong>INSTALL-MAC.command</strong>
+                    </p>
+                    <p class="setup-hint">Só é necessário fazer isto uma vez.</p>
+                </div>
+            </div>
+        </section>
+
         <footer class="footer">
             <span>Kendir Studios</span>
             <span class="footer-dot">•</span>

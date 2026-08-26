@@ -23,7 +23,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - Mostra uma pill numérica como `SA01/AT05` em cada comentário cuja localização possa ser mapeada para a estrutura
 - Respeita os controlos nativos de abrir/fechar dos painéis do GiRED
 - Verifica e instala novas versões automaticamente em segundo plano
-- Mantém o botão `Atualizar agora` no popup como controlo manual/fallback
+- Mantém o botão `Verificar atualizações` no popup como controlo manual; quando há uma versão nova, instala-a e recarrega a extensão sozinho
 - Popup compacto com interface visual própria do GiRED Fixer
 - No CMS, o modal `Editando: ...` ocupa quase todo o ecrã, com uma margem à volta
 - No CMS, a barra de navegação das unidades (`Anterior`/`Seguinte`) é reposta automaticamente se o Studio não a renderizar
@@ -140,7 +140,11 @@ A partir da v1.8.4, as pills de localização usam os códigos reais da estrutur
 
 ## Atualizações
 
-Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano e no arranque do browser.
+O comportamento depende de como a extensão foi instalada; o botão `Verificar atualizações` do popup força uma verificação imediata em ambos os casos e, quando há versão nova, a instalação e o recarregamento acontecem sozinhos.
+
+### Instalação por clone Git
+
+Depois da configuração inicial, a extensão verifica automaticamente o repositório em segundo plano (de hora a hora) e no arranque do browser.
 
 Quando existe uma atualização e o clone está limpo:
 
@@ -149,11 +153,13 @@ Quando existe uma atualização e o clone está limpo:
 3. Executa `git pull --ff-only origin main`
 4. A extensão recarrega automaticamente
 
-O popup continua a permitir verificar e instalar uma atualização manualmente através do botão `Atualizar agora`.
-
 Não é necessário copiar IDs nem voltar a configurar o updater.
 
 Como fallback, continua a ser possível atualizar manualmente através do GitHub Desktop e depois carregar em "Recarregar" em `chrome://extensions/` / `edge://extensions/`.
+
+### Instalação pela Chrome Web Store
+
+O Chrome verifica e descarrega novas versões sozinho; assim que o download termina, a extensão recarrega-se de imediato em vez de esperar pelo reinício do browser. O botão `Verificar atualizações` pede ao Chrome uma verificação imediata (o Chrome pode limitar verificações demasiado frequentes).
 
 ## Interface
 

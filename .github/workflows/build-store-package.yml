@@ -41,19 +41,20 @@ jobs:
           echo "changed=$changed" >> "$GITHUB_OUTPUT"
           echo "Versão atual: $current (anterior: ${previous:-n/a}) -> changed=$changed"
 
-      - name: Validate store manifest
+      - name: Validate repository manifest
         run: |
           python3 - <<'PY'
           import json
           from pathlib import Path
 
+          # O manifest do repositório serve a instalação por clone Git e tem de trazer o
+          # updater nativo; o passo de build remove essas permissões do ZIP da store.
           manifest = json.loads(Path("manifest.json").read_text(encoding="utf-8"))
           permissions = set(manifest.get("permissions", []))
 
           assert manifest.get("manifest_version") == 3, "Chrome Web Store build must use Manifest V3"
-          assert "nativeMessaging" not in permissions, "nativeMessaging must not be shipped in the store build"
-          assert "alarms" not in permissions, "alarms are only used by the legacy updater"
-          assert "background" not in manifest, "legacy updater background worker must not be shipped"
+          assert manifest.get("background", {}).get("service_worker") == "background.js", "updater background worker must be registered"
+          assert {"storage", "nativeMessaging", "alarms"} <= permissions, "git-clone installs need storage, nativeMessaging and alarms"
           assert manifest.get("icons", {}).get("128") == "icons/icon128.png", "128px store icon is missing"
           PY
 
@@ -92,6 +93,7 @@ jobs:
             cms-editor-modal.css
             version-comments-export.js
             version-comments-export-links.js
+            background.js
           )
 
           for file in "${files[@]}"; do
@@ -99,12 +101,21 @@ jobs:
           done
 
           # A Web Store atribui o seu próprio ID; a "key" só serve para a instalação sem compactação
-          # e faz o upload falhar com PKG_MANIFEST_KEY_NOT_MATCH.
+          # e faz o upload falhar com PKG_MANIFEST_KEY_NOT_MATCH. As permissões nativeMessaging e
+          # alarms pertencem ao updater por clone Git (na store, o Chrome atualiza sozinho e o
+          # background.js deteta as APIs em falta), e removê-las evita o aviso de permissões que
+          # desativaria a extensão nos utilizadores da store.
           python3 - "$STAGE/manifest.json" <<'PY'
           import json, sys
           path = sys.argv[1]
           manifest = json.load(open(path, encoding="utf-8"))
           manifest.pop("key", None)
+          manifest["permissions"] = [
+              p for p in manifest.get("permissions", [])
+              if p not in ("nativeMessaging", "alarms")
+          ]
+          assert manifest["permissions"] == ["storage"], "store package must only request storage"
+          assert manifest.get("background", {}).get("service_worker") == "background.js", "store package needs the auto-update background worker"
           json.dump(manifest, open(path, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
           PY
 

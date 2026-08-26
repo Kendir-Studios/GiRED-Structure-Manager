@@ -2,6 +2,14 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [Por lançar]
+
+### Adicionado
+
+- O popup volta a ter a secção `Atualizações` com o botão `Verificar atualizações`; quando há uma versão nova, a extensão instala-a e recarrega-se sozinha, sem segundo clique
+- O updater automático em segundo plano foi religado (service worker + permissões `nativeMessaging`/`alarms` no manifest, que tinham ficado órfãos na preparação para a store): nas instalações por clone Git usa o helper nativo `pt.kendir.gired_updater`, e nas instalações pela Chrome Web Store aplica de imediato as atualizações que o Chrome descarrega (`onUpdateAvailable` → reload)
+- O ZIP da store passa a incluir o `background.js` mas continua apenas com a permissão `storage`: o build remove `nativeMessaging`/`alarms` (tal como já removia a `key`), evitando o aviso de novas permissões que desativaria a extensão nos utilizadores da store
+
 ## [2.4.0] - 2026-08-26
 
 ### Corrigido
