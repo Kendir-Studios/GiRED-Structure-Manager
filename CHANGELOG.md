@@ -4,6 +4,12 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [2.7.1] - 2026-08-26
+
+### Corrigido
+
+- Os nomes relativos de imagens e áudios guardados nos JSONs deixam de ser tratados como caminhos dentro de `/container/`; o exportador associa agora cada nome ao endereço real do recurso já renderizado pelo componente antes de o descarregar
+
 ## [2.7.0] - 2026-08-26
 
 ### Adicionado
