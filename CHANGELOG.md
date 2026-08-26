@@ -4,6 +4,16 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [2.7.0] - 2026-08-26
+
+### Adicionado
+
+- O ZIP de uma SA passa a incluir, sem subpastas, as imagens, áudios e vídeos referenciados pelas dinâmicas; os JSONs são atualizados para apontar para os nomes locais, os recursos repetidos são deduplicados e eventuais falhas ficam registadas em `_AVISOS.txt`
+
+### Alterado
+
+- Os ficheiros das dinâmicas deixam de usar parênteses no índice: `DIN(1).json` passa a `DIN01.json`, tanto na exportação individual como no ZIP da SA
+
 ## [2.6.2] - 2026-08-26
 
 ### Corrigido
