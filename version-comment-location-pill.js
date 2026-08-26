@@ -157,8 +157,16 @@
         return map;
     }
 
-    /** Lê o mapa persistente já criado pelo Structure Mapper. */
-    async function buildStoredCodeMap() {
+    let storedCodeMapPromise = null;
+
+    /** Lê o mapa persistente já criado pelo Structure Mapper (com cache até ele mudar). */
+    function buildStoredCodeMap() {
+        if (!storedCodeMapPromise) storedCodeMapPromise = readStoredCodeMap();
+        return storedCodeMapPromise;
+    }
+
+    /** Faz a leitura real do mapa persistente. */
+    async function readStoredCodeMap() {
         const map = new Map();
 
         try {
@@ -240,11 +248,15 @@
     async function updateAllPills() {
         updateScheduled = false;
 
+        // Sem comentários no painel não há nada a fazer; evita construir os mapas
+        // (incluindo a leitura do storage) a cada mutação da página.
+        const comments = document.querySelectorAll(`${SIDEBAR_SELECTOR} ${COMMENT_SELECTOR}`);
+        if (!comments.length) return;
+
         const saMap = buildAuthoringSaMap();
         const fallbackCodeMap = await buildFallbackCodeMap();
 
-        document.querySelectorAll(`${SIDEBAR_SELECTOR} ${COMMENT_SELECTOR}`)
-            .forEach(comment => updateCommentPill(comment, saMap, fallbackCodeMap));
+        comments.forEach(comment => updateCommentPill(comment, saMap, fallbackCodeMap));
     }
 
     /** Agenda uma atualização para evitar várias passagens no mesmo ciclo do DOM. */
@@ -266,7 +278,10 @@
     /** Recalcula também quando o Structure Mapper atualiza o mapa partilhado. */
     if (chrome?.storage?.onChanged) {
         chrome.storage.onChanged.addListener((changes, areaName) => {
-            if (areaName === "local" && changes[ROUTE_MAP_KEY]) scheduleUpdate();
+            if (areaName === "local" && changes[ROUTE_MAP_KEY]) {
+                storedCodeMapPromise = null;
+                scheduleUpdate();
+            }
         });
     }
 

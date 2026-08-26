@@ -17,9 +17,12 @@
 
     /** Obtém o texto original do link, ignorando badges já inseridos. */
     function getLinkLabel(link) {
-        const clone = link.cloneNode(true);
-        clone.querySelectorAll(`.${BADGE_CLASS}`).forEach(badge => badge.remove());
-        return normalizeText(clone.textContent);
+        let text = "";
+        for (const node of link.childNodes) {
+            if (node instanceof Element && node.classList.contains(BADGE_CLASS)) continue;
+            text += node.textContent;
+        }
+        return normalizeText(text);
     }
 
     /** Adiciona ou atualiza um badge dentro do link do item. */
@@ -35,7 +38,9 @@
             link.appendChild(badge);
         }
 
-        badge.textContent = code;
+        // Atribuir o mesmo texto substitui na mesma o text node e gera uma mutação,
+        // o que realimentava o MutationObserver num ciclo contínuo.
+        if (badge.textContent !== code) badge.textContent = code;
         badge.classList.toggle("is-at", code.startsWith("AT"));
         badge.classList.toggle("is-introd", code === "INTROD");
     }
@@ -64,18 +69,30 @@
         }
     }
 
+    // O contexto só muda via storage.onChanged; evita uma leitura por passagem.
+    let contextPromise = null;
+
+    /** Lê (com cache) o contexto atual guardado pelo Structure Mapper. */
+    function getContext() {
+        if (!contextPromise) {
+            contextPromise = (async () => {
+                try {
+                    const result = await chrome.storage.local.get(STORAGE_KEY);
+                    return result[STORAGE_KEY] || null;
+                } catch (_) {
+                    return null;
+                }
+            })();
+        }
+        return contextPromise;
+    }
+
     /** Numera todos os nav-sub existentes no CMS. */
     async function updateDropdowns() {
         if (location.hostname !== "cms.gired.pt") return;
+        if (!document.querySelector("div.nav-sub")) return;
 
-        let context = null;
-        try {
-            const result = await chrome.storage.local.get(STORAGE_KEY);
-            context = result[STORAGE_KEY] || null;
-        } catch (_) {
-            return;
-        }
-
+        const context = await getContext();
         if (!context) return;
         document.querySelectorAll("div.nav-sub").forEach(navSub => numberNavSub(navSub, context));
     }
@@ -95,12 +112,21 @@
         scheduleUpdate();
         document.addEventListener("click", scheduleUpdate, true);
 
-        const observer = new MutationObserver(scheduleUpdate);
+        // Ignora as mutações provocadas pelos nossos próprios badges para não
+        // reagendar atualizações em cadeia.
+        const observer = new MutationObserver(mutations => {
+            const relevant = mutations.some(mutation =>
+                !(mutation.target instanceof Element) || !mutation.target.closest(`.${BADGE_CLASS}`));
+            if (relevant) scheduleUpdate();
+        });
         observer.observe(document.body, { childList: true, subtree: true });
 
         if (chrome?.storage?.onChanged) {
             chrome.storage.onChanged.addListener((changes, areaName) => {
-                if (areaName === "local" && changes[STORAGE_KEY]) scheduleUpdate();
+                if (areaName === "local" && changes[STORAGE_KEY]) {
+                    contextPromise = Promise.resolve(changes[STORAGE_KEY].newValue || null);
+                    scheduleUpdate();
+                }
             });
         }
     }

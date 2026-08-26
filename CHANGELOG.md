@@ -2,6 +2,29 @@
 
 Todas as alterações relevantes do GiRED Structure Manager são registadas neste ficheiro.
 
+## [Por lançar]
+
+### Adicionado
+
+- Sistema de favoritos no menu `Adicionar um Novo Componente` do CMS (novo `cms-quick-add.js`): cada item do submenu `Avançado` ganha uma estrela para marcar/desmarcar, e os favoritos aparecem num painel próprio `Favoritos` por baixo do menu nativo — um clique cria logo o componente pelo fluxo nativo do Studio, sem abrir o `Avançado`
+- Os favoritos ficam guardados localmente (`giredQuickAddFavoritesV1` no storage da extensão, sincronizado entre tabs); na primeira utilização vêm pré-preenchidos com as dinâmicas `(Unified)`, o painel só existe quando há favoritos, e tudo desaparece quando a extensão está desligada
+- O menu de ações (⋯) de cada dinâmica SAGE ganha `Descarregar JSON` (novo `cms-json-download.js`): exporta o JSON formatado da dinâmica com o nome no padrão RED — `{recurso}_{SA}_{AT}_DIN(y).json` (ex.: `RED_MAT07_ST2_SA01_AT01_DIN(2).json`), em que `y` é a posição da dinâmica entre as dinâmicas SAGE da unidade; os códigos SA/AT vêm dos badges da extensão, com fallback ao contexto guardado
+- Botão `Descarregar JSONs da SA` na barra lateral da unidade: percorre todas as ATs da SA atual (com a sessão do utilizador), extrai os JSONs de todas as dinâmicas e entrega um `{recurso}_{SA}.zip` com os ficheiros no mesmo padrão de nomes (INTROD/ATxx), com progresso no botão, avisos em `_AVISOS.txt` quando alguma unidade falha, e ZIP gerado localmente sem dependências externas
+
+### Alterado
+
+- Os content scripts ficaram muito mais leves durante o carregamento e a utilização das páginas, eliminando as travadelas ao abrir/reabrir separadores GiRED:
+  - `cms-sequence-nav.js` deixou de serializar a barra de sequência e reescrever todos os snapshots no `localStorage` a cada mutação da página (com perfis reais isto eram escritas síncronas de ~1MB várias vezes por segundo); agora grava no máximo de 2 em 2 segundos e só quando o conteúdo muda
+  - `content.js` compara o texto antes de verificar a visibilidade (a verificação forçava estilo+layout em milhares de elementos por passagem), usa `checkVisibility()`, deixou de clonar itens de menu para ler o rótulo, e só reescreve o mapa de rotas no storage quando alguma entrada muda de facto
+  - `cms-dropdowns.js` ignora as mutações dos próprios badges, sai cedo quando a página não tem menus e deixou de clonar links para ler o rótulo
+  - `version-vc-counters.js` reutiliza o contador nativo já encontrado em vez de varrer o painel inteiro a cada mutação
+  - `version-comment-location-pill.js` sai cedo quando não há comentários no painel e guarda em cache a leitura do mapa de rotas até este mudar
+  - Todos os textos/atributos passam a ser escritos apenas quando o valor muda, para os `MutationObserver` não reagendarem trabalho em cadeia
+- A causa principal das travadelas era o storage acumulado com o uso (mapa de rotas com milhares de entradas): o `version-comment-location-pill.js` reconstruía o mapa de códigos completo a cada mutação de qualquer página (mesmo sem comentários no ecrã) e o `content.js` lia e desserializava o mapa 3 vezes por passagem, mais o `JSON.parse` do mapa legado do `localStorage`; tudo isto passou a ficar em cache em memória, invalidada via `storage.onChanged`
+- O mapa de rotas passou a ser podado às 1500 entradas mais recentes, para não crescer sem limite
+- O updater automático por clone Git passou de hora a hora para de 4 em 4 horas (cada verificação lança powershell + git, o que se sentia no sistema); o alarme antigo é recriado com o novo período
+- Medido com CPU profile (CDP) numa página real do Studio com storage realista semeado (mapa de 5000 rotas ≈ 1,5MB, mapa legado de 2000 entradas, 40 snapshots), durante 6,4s de atividade: main thread ocupado 2346ms → 32ms, self-time da extensão 885ms → 6ms, sem qualquer alteração no resultado visual (badges idênticos)
+
 ## [2.5.0] - 2026-08-26
 
 ### Adicionado

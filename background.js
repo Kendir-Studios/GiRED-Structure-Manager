@@ -3,7 +3,9 @@
 
     const NATIVE_HOST = "pt.kendir.gired_updater";
     const ALARM_NAME = "giredStructureMapperAutoUpdate";
-    const CHECK_INTERVAL_MINUTES = 60;
+    // Cada verificação por clone Git lança powershell + git (pesado para o sistema);
+    // 4 em 4 horas chega perfeitamente para a equipa ficar atualizada.
+    const CHECK_INTERVAL_MINUTES = 240;
     let updateInProgress = false;
 
     /** Instala imediatamente qualquer atualização que o Chrome já tenha descarregado da store. */
@@ -77,7 +79,7 @@
         if (!chrome.alarms) return;
 
         const alarm = await chrome.alarms.get(ALARM_NAME);
-        if (alarm) return;
+        if (alarm && alarm.periodInMinutes === CHECK_INTERVAL_MINUTES) return;
 
         chrome.alarms.create(ALARM_NAME, {
             delayInMinutes: 1,

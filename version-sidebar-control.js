@@ -27,7 +27,10 @@
         const width = rectWidth || computedWidth;
 
         if (width > 0) {
-            document.documentElement.style.setProperty(WIDTH_VARIABLE, `${Math.round(width)}px`);
+            const nextValue = `${Math.round(width)}px`;
+            if (document.documentElement.style.getPropertyValue(WIDTH_VARIABLE) !== nextValue) {
+                document.documentElement.style.setProperty(WIDTH_VARIABLE, nextValue);
+            }
         }
     }
 

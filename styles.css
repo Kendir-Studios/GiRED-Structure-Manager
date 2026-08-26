@@ -362,3 +362,155 @@ html.gired-review-comments-only body.vc-review-open #vc-review-sidebar .vc-revie
     max-height: none !important;
     overflow-y: auto !important;
 }
+
+/* ---------- Favoritos de componentes (menu "Adicionar um Novo Componente") ---------- */
+
+/* O painel "Favoritos" fica acima do menu nativo, com a mesma linguagem visual
+   (caixa, cores e espaçamentos copiados do .add-xblock-component do Studio). */
+.gired-quick-favorites {
+    box-sizing: border-box;
+    margin: 20px 10px 0;
+    padding: 10px;
+    border: 1px solid #c8c8c8;
+    border-radius: 5px;
+    background-color: #f1f1f1;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) inset;
+    text-align: center;
+}
+
+.gired-quick-favorites__header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin: 4px 0 12px;
+}
+
+.gired-quick-favorites__icon {
+    flex: 0 0 auto;
+    color: #f2b01e;
+    font-size: 14px;
+    line-height: 1;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.12);
+}
+
+.gired-quick-favorites__title {
+    color: #008100;
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.gired-quick-favorites__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 0;
+    padding: 0 0 2px;
+    list-style: none;
+}
+
+.gired-quick-favorites__list li {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* Botões dos favoritos: verde do Studio, um clique cria logo o componente. */
+.gired-quick-add-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px 8px 9px;
+    border: 0;
+    border-radius: 5px;
+    background-color: #008100;
+    color: #ffffff;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: left;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+    transition: background-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.gired-quick-add-button:hover {
+    background-color: #006b00;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.22), 0 1px 0 rgba(255, 255, 255, 0.4) inset;
+    color: #ffffff;
+}
+
+.gired-quick-add-button:active {
+    background-color: #005a00;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.2) inset;
+}
+
+.gired-quick-add-button:focus-visible {
+    outline: 2px solid #008100;
+    outline-offset: 2px;
+}
+
+.gired-quick-add-button__plus {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    width: 18px;
+    height: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.16);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+/* Estrela para marcar/desmarcar favoritos nos itens do submenu Avançado. */
+.gired-quick-fav-item {
+    position: relative;
+}
+
+.gired-quick-fav-item .button-component {
+    padding-right: 34px !important;
+}
+
+.gired-quick-fav-star {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    transform: translateY(-50%);
+    padding: 2px 6px;
+    border: 0;
+    background: transparent;
+    color: #b9c4cc;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.12s ease, transform 0.12s ease;
+}
+
+.gired-quick-fav-star:hover {
+    color: #f2b01e;
+    transform: translateY(-50%) scale(1.15);
+}
+
+.gired-quick-fav-star.is-active {
+    color: #f2b01e;
+}
+
+/* Tudo desaparece quando a extensão está desligada. */
+html.gired-structure-mapper-loading .gired-quick-add-button,
+html.gired-structure-mapper-disabled .gired-quick-add-button,
+html.gired-structure-mapper-loading .gired-quick-favorites,
+html.gired-structure-mapper-disabled .gired-quick-favorites,
+html.gired-structure-mapper-loading .gired-quick-fav-star,
+html.gired-structure-mapper-disabled .gired-quick-fav-star,
+html.gired-structure-mapper-loading .gired-json-download,
+html.gired-structure-mapper-disabled .gired-json-download,
+html.gired-structure-mapper-loading .gired-sa-export,
+html.gired-structure-mapper-disabled .gired-sa-export {
+    display: none !important;
+}

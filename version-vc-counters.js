@@ -144,11 +144,23 @@
         return counts;
     }
 
+    let cachedNativeCounter = null;
+
     /** Encontra o contador nativo de bloqueantes (o elemento mais interior com esse texto). */
     function findNativeBlockingCounter(sidebar) {
+        // O scan completo do painel é caro e corre a cada mutação; enquanto o
+        // elemento anterior continuar válido, reutilizamo-lo.
+        if (cachedNativeCounter
+            && sidebar.contains(cachedNativeCounter)
+            && !cachedNativeCounter.closest(`.${WRAPPER_CLASS}`)
+            && BLOCKING_PATTERN.test(cachedNativeCounter.textContent || "")) {
+            return cachedNativeCounter;
+        }
+
         const candidates = Array.from(sidebar.querySelectorAll("div, span, p, button"))
             .filter(el => !el.closest(`.${WRAPPER_CLASS}`) && BLOCKING_PATTERN.test(el.textContent || ""));
-        return candidates.find(el => !candidates.some(other => other !== el && el.contains(other))) || null;
+        cachedNativeCounter = candidates.find(el => !candidates.some(other => other !== el && el.contains(other))) || null;
+        return cachedNativeCounter;
     }
 
     /** Cria um dos cartões de contagem. */
@@ -170,13 +182,16 @@
 
     /** Atualiza texto e estado visual de um cartão. */
     function renderCounter(counter, value, text, partial) {
-        counter.querySelector(`.${BASE_CLASS}-icon`).textContent = value === 0 ? "✓" : "!";
+        const icon = counter.querySelector(`.${BASE_CLASS}-icon`);
+        const iconText = value === 0 ? "✓" : "!";
+        if (icon.textContent !== iconText) icon.textContent = iconText;
         const label = counter.querySelector(`.${BASE_CLASS}-label`);
         if (label.textContent !== text) label.textContent = text;
         counter.classList.toggle("is-clear", value === 0);
         if (partial) {
-            counter.setAttribute("title", "Contagem parcial: o GiRED não permitiu carregar a lista completa de erros.");
-        } else {
+            const title = "Contagem parcial: o GiRED não permitiu carregar a lista completa de erros.";
+            if (counter.getAttribute("title") !== title) counter.setAttribute("title", title);
+        } else if (counter.hasAttribute("title")) {
             counter.removeAttribute("title");
         }
     }

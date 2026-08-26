@@ -57,7 +57,8 @@
             badge.setAttribute("aria-hidden", "true");
             title.before(badge);
         }
-        badge.textContent = `SA ${formatNumber(index + 1)}`;
+        const text = `SA ${formatNumber(index + 1)}`;
+        if (badge.textContent !== text) badge.textContent = text;
     }
 
     /** Cria ou atualiza a etiqueta AT dentro da respetiva SA. */
@@ -74,7 +75,8 @@
             badge.setAttribute("aria-hidden", "true");
             title.before(badge);
         }
-        badge.textContent = index === 0 ? "INTROD" : `AT ${formatNumber(index)}`;
+        const text = index === 0 ? "INTROD" : `AT ${formatNumber(index)}`;
+        if (badge.textContent !== text) badge.textContent = text;
     }
 
     /** Constrói os mapas de nomes -> códigos a partir da própria estrutura do GiRED. */
@@ -103,17 +105,32 @@
             badge.setAttribute("aria-hidden", "true");
             item.prepend(badge);
         }
-        badge.textContent = code;
+        if (badge.textContent !== code) badge.textContent = code;
         badge.classList.toggle("is-at", code.startsWith("AT"));
         badge.classList.toggle("is-introd", code === "INTROD");
+    }
+
+    /** Texto de um item de menu sem os badges, evitando o custo de clonar o nó. */
+    function getMenuItemLabel(item) {
+        // Só os badges diretos são nossos; um badge aninhado obriga ao caminho antigo.
+        if (item.querySelector(`:scope > * .${MENU_BADGE_CLASS}`)) {
+            const clone = item.cloneNode(true);
+            clone.querySelectorAll(`.${MENU_BADGE_CLASS}`).forEach(el => el.remove());
+            return normalizeText(clone.textContent);
+        }
+        let text = "";
+        for (const node of item.childNodes) {
+            if (node instanceof Element && node.classList.contains(MENU_BADGE_CLASS)) continue;
+            text += node.textContent;
+        }
+        return normalizeText(text);
     }
 
     /** Adiciona códigos aos itens dos menus quando existe um mapa por nome. */
     function updateNavigationMenus(saMap, atMap) {
         document.querySelectorAll('.dropdown-menu a, .dropdown-menu button, [role="menu"] a, [role="menu"] button, [role="menuitem"], [role="option"]').forEach(item => {
-            const clone = item.cloneNode(true);
-            clone.querySelectorAll(`.${MENU_BADGE_CLASS}`).forEach(el => el.remove());
-            const code = saMap.get(normalizeText(clone.textContent)) || atMap.get(normalizeText(clone.textContent));
+            const label = getMenuItemLabel(item);
+            const code = saMap.get(label) || atMap.get(label);
             if (code) setMenuBadge(item, code);
         });
     }
@@ -128,11 +145,7 @@
                 .filter(isElementVisible);
             if (items.length < 2) return;
 
-            const labels = items.map(item => {
-                const clone = item.cloneNode(true);
-                clone.querySelectorAll(`.${MENU_BADGE_CLASS}`).forEach(el => el.remove());
-                return normalizeText(clone.textContent);
-            });
+            const labels = items.map(getMenuItemLabel);
 
             const containsCurrentSa = context?.saName && labels.includes(normalizeText(context.saName));
             const containsCurrentAt = context?.atName && labels.includes(normalizeText(context.atName));
@@ -164,6 +177,30 @@
         } catch (_) { return fallback; }
     }
 
+    // O mapa de rotas cresce com o uso e era lido do storage (e o legado feito
+    // JSON.parse) várias vezes por passagem; as caches vivem até o valor mudar.
+    let routeMapPromise = null;
+    let storedContextPromise = null;
+    let legacyRoutesCache = null;
+
+    /** Mapa de rotas partilhado, lido uma única vez até haver alterações. */
+    function getRouteMap() {
+        if (!routeMapPromise) routeMapPromise = readExtensionStorage(ROUTE_MAP_KEY, {});
+        return routeMapPromise;
+    }
+
+    /** Último contexto guardado, lido uma única vez até haver alterações. */
+    function getStoredContext() {
+        if (!storedContextPromise) storedContextPromise = readExtensionStorage(STORAGE_KEY, null);
+        return storedContextPromise;
+    }
+
+    /** Mapa de rotas legado do localStorage, sem repetir o JSON.parse. */
+    function getLegacyRoutes() {
+        if (legacyRoutesCache === null) legacyRoutesCache = readLocalStorage(LEGACY_ROUTE_MAP_KEY, {});
+        return legacyRoutesCache;
+    }
+
     /** Guarda dados no armazenamento da extensão. */
     async function writeExtensionStorage(key, value) {
         try { if (chrome?.storage?.local) await chrome.storage.local.set({ [key]: value }); } catch (_) {}
@@ -181,21 +218,22 @@
     /** Guarda o contexto atual e associa o destino ao respetivo SA/AT. */
     async function saveContext(context, href) {
         writeLocalStorage(LEGACY_STORAGE_KEY, context);
+        storedContextPromise = Promise.resolve(context);
         await writeExtensionStorage(STORAGE_KEY, context);
         if (!href) return;
         const route = normalizeUrl(href);
-        const localRoutes = readLocalStorage(LEGACY_ROUTE_MAP_KEY, {});
+        const localRoutes = getLegacyRoutes();
         localRoutes[route] = context;
         writeLocalStorage(LEGACY_ROUTE_MAP_KEY, localRoutes);
-        const routes = await readExtensionStorage(ROUTE_MAP_KEY, {});
+        const routes = await getRouteMap();
         routes[route] = context;
         await writeExtensionStorage(ROUTE_MAP_KEY, routes);
     }
 
     /** Regista os links da estrutura no mapa partilhado entre tabs. */
     async function indexStructureRoutes() {
-        const routes = await readExtensionStorage(ROUTE_MAP_KEY, {});
-        const localRoutes = readLocalStorage(LEGACY_ROUTE_MAP_KEY, {});
+        const routes = await getRouteMap();
+        const localRoutes = getLegacyRoutes();
         let changed = false;
         document.querySelectorAll(SUBSECTIONS_SELECTOR).forEach(container => {
             getSubsections(container).forEach((subsection, saIndex) => {
@@ -211,6 +249,14 @@
                         atName: normalizeText(title.textContent)
                     };
                     const route = normalizeUrl(link.href);
+                    // Só reescrevemos o armazenamento quando alguma entrada muda de facto;
+                    // antes disso, cada passagem serializava o mapa inteiro outra vez.
+                    const existing = routes[route];
+                    if (existing
+                        && existing.saCode === context.saCode && existing.saName === context.saName
+                        && existing.atCode === context.atCode && existing.atName === context.atName) {
+                        return;
+                    }
                     routes[route] = context;
                     localRoutes[route] = context;
                     changed = true;
@@ -218,6 +264,15 @@
             });
         });
         if (changed) {
+            // Mantém o mapa dentro de um limite razoável, descartando as
+            // entradas mais antigas (a ordem das chaves segue a inserção).
+            const keys = Object.keys(routes);
+            if (keys.length > 1500) {
+                for (const key of keys.slice(0, keys.length - 1500)) {
+                    delete routes[key];
+                    delete localRoutes[key];
+                }
+            }
             writeLocalStorage(LEGACY_ROUTE_MAP_KEY, localRoutes);
             await writeExtensionStorage(ROUTE_MAP_KEY, routes);
         }
@@ -226,16 +281,21 @@
     /** Obtém o contexto associado à página atual ou o último contexto capturado. */
     async function getCurrentContext() {
         const currentRoute = normalizeUrl(location.href);
-        const routes = await readExtensionStorage(ROUTE_MAP_KEY, {});
+        const routes = await getRouteMap();
         if (routes[currentRoute]) return routes[currentRoute];
-        const localRoutes = readLocalStorage(LEGACY_ROUTE_MAP_KEY, {});
+        const localRoutes = getLegacyRoutes();
         if (localRoutes[currentRoute]) return localRoutes[currentRoute];
-        return await readExtensionStorage(STORAGE_KEY, readLocalStorage(LEGACY_STORAGE_KEY, null));
+        return (await getStoredContext()) ?? readLocalStorage(LEGACY_STORAGE_KEY, null);
     }
 
     /** Indica se um elemento está realmente visível. */
     function isElementVisible(element) {
         if (!(element instanceof Element)) return false;
+        // checkVisibility é uma única chamada nativa; o caminho antigo forçava
+        // estilo e layout por elemento, o que pesava nos scans grandes.
+        if (typeof element.checkVisibility === "function") {
+            return element.checkVisibility({ checkVisibilityCSS: true });
+        }
         const style = window.getComputedStyle(element);
         return style.display !== "none" && style.visibility !== "hidden" && element.getClientRects().length > 0;
     }
@@ -250,10 +310,13 @@
         const normalizedName = normalizeText(name);
         if (!normalizedName) return null;
         for (const selector of selectors) {
-            const exact = Array.from(document.querySelectorAll(selector)).find(element =>
-                isElementVisible(element) && !element.closest(`.${CMS_SA_BADGE_CLASS}, .${CMS_AT_BADGE_CLASS}`) && normalizeText(element.textContent) === normalizedName
-            );
-            if (exact) return exact;
+            // Comparar o texto primeiro é barato; a verificação de visibilidade
+            // (que força layout) fica só para os poucos candidatos que coincidem.
+            for (const element of document.querySelectorAll(selector)) {
+                if (normalizeText(element.textContent) !== normalizedName) continue;
+                if (element.closest(`.${CMS_SA_BADGE_CLASS}, .${CMS_AT_BADGE_CLASS}`)) continue;
+                if (isElementVisible(element)) return element;
+            }
         }
         return null;
     }
@@ -268,7 +331,7 @@
             badge.setAttribute("aria-hidden", "true");
             placement === "before" ? target.before(badge) : target.after(badge);
         }
-        badge.textContent = text;
+        if (badge.textContent !== text) badge.textContent = text;
     }
 
     /** Integra SA e AT diretamente no cabeçalho do editor CMS. */
@@ -294,6 +357,11 @@
             indicator.className = CONTEXT_CLASS;
             document.body.appendChild(indicator);
         }
+        const codesText = `${context.saCode} / ${context.atCode}`;
+        const nameText = context.atName || "";
+        const currentCodes = indicator.querySelector(`.${CONTEXT_CLASS}__codes`)?.textContent || "";
+        const currentName = indicator.querySelector(`.${CONTEXT_CLASS}__name`)?.textContent || "";
+        if (currentCodes === codesText && currentName === nameText) return;
         indicator.innerHTML = "";
         const codes = document.createElement("span");
         codes.className = `${CONTEXT_CLASS}__codes`;
@@ -367,7 +435,11 @@
         document.addEventListener("click", captureNavigation, true);
         document.addEventListener("click", scheduleUpdate, true);
         if (chrome?.storage?.onChanged) chrome.storage.onChanged.addListener((changes, areaName) => {
-            if (areaName === "local" && (changes[STORAGE_KEY] || changes[ROUTE_MAP_KEY])) scheduleUpdate();
+            if (areaName !== "local") return;
+            // O onChanged já traz o valor novo; atualizamos as caches sem nova leitura.
+            if (changes[ROUTE_MAP_KEY]) routeMapPromise = Promise.resolve(changes[ROUTE_MAP_KEY].newValue ?? {});
+            if (changes[STORAGE_KEY]) storedContextPromise = Promise.resolve(changes[STORAGE_KEY].newValue ?? null);
+            if (changes[STORAGE_KEY] || changes[ROUTE_MAP_KEY]) scheduleUpdate();
         });
         window.setInterval(() => {
             if (location.href !== lastUrl) { lastUrl = location.href; scheduleUpdate(); }

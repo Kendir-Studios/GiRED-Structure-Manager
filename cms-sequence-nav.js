@@ -8,9 +8,13 @@
     const MAX_SNAPSHOTS = 40;
     const MISSING_GRACE_MS = 2500;
 
+    const SAVE_THROTTLE_MS = 2000;
+
     let missingTimer = null;
     let saveScheduled = false;
     let selfMutationPending = false;
+    let lastSavedHtml = "";
+    let lastSaveAt = 0;
 
     /** Indica se a extensão está atualmente ativa na página. */
     function isExtensionEnabled() {
@@ -59,22 +63,30 @@
         const tabs = Array.from(nav.querySelectorAll(".nav-item.tab[data-id]"));
         if (!sequence || !tabs.length) return;
 
+        // Sem esta guarda, cada rajada de mutações do Studio serializava a barra e
+        // reescrevia todos os snapshots no localStorage (writes síncronos pesados).
+        const html = container.innerHTML;
+        lastSaveAt = Date.now();
+        if (html === lastSavedHtml) return;
+
         const snapshot = {
             sequentialId: sequence.getAttribute("data-id"),
             verticals: tabs.map(tab => tab.getAttribute("data-id")),
-            html: container.innerHTML,
+            html,
             savedAt: Date.now()
         };
 
         const others = readSnapshots().filter(item => item.sequentialId !== snapshot.sequentialId);
         writeSnapshots([snapshot, ...others]);
+        lastSavedHtml = html;
     }
 
-    /** Agenda uma gravação por frame para não pesar durante as mutações do Studio. */
+    /** Agenda uma gravação espaçada para não pesar durante as mutações do Studio. */
     function scheduleSave() {
         if (saveScheduled) return;
         saveScheduled = true;
-        requestAnimationFrame(saveSnapshot);
+        const delay = Math.max(0, SAVE_THROTTLE_MS - (Date.now() - lastSaveAt));
+        window.setTimeout(saveSnapshot, delay);
     }
 
     /** Ajusta a cópia restaurada para refletir a unidade atual como ativa. */

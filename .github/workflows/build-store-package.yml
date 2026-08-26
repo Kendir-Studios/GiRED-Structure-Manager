@@ -87,6 +87,7 @@ jobs:
             cms-dropdowns.js
             cms-code-editor.js
             cms-sequence-nav.js
+            cms-quick-add.js
             styles.css
             version-sidebar.css
             context-hide.css
@@ -94,6 +95,8 @@ jobs:
             version-comments-export.js
             version-comments-export-links.js
             background.js
+            cms-quick-add.js
+            cms-json-download.js
           )
 
           for file in "${files[@]}"; do
