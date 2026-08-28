@@ -95,8 +95,8 @@ jobs:
             version-comments-export.js
             version-comments-export-links.js
             background.js
-            cms-quick-add.js
             cms-json-download.js
+            cms-problem-convert.js
           )
 
           for file in "${files[@]}"; do

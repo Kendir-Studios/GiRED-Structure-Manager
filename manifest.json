@@ -44,7 +44,8 @@
         "cms-code-editor.js",
         "cms-sequence-nav.js",
         "cms-quick-add.js",
-        "cms-json-download.js"
+        "cms-json-download.js",
+        "cms-problem-convert.js"
       ],
       "css": [
         "styles.css",

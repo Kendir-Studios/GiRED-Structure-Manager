@@ -4,6 +4,13 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+### Adicionado
+
+- Novo item `Converter em dinâmica` no menu de ações (⋯) dos problemas CAPA do CMS (novo `cms-problem-convert.js`): lê o XML do problema pela API do Studio, cria a dinâmica SAGE equivalente com o mesmo conteúdo (enunciado, opções, respostas certas e feedbacks) e coloca-a imediatamente abaixo do problema original, que fica intacto
+- A conversão preserva a divisão do problema original: a introdução (bloco `.ea-stem`) vai para `introductory_statement` e a pergunta (`label`) para `information_and_question`; os feedbacks acompanham (`choicehint` → descrições por opção, `correcthint` → `correct_feedback`, `stringequalhint` → `incorrect_feedback`)
+- Conversões suportadas: escolha simples → `Single Choice (Unified)`, seleção múltipla (checkboxes) → `Multiple Selection (Unified)`, escolha Verdadeiro/Falso → `True or False`, resposta escrita (`stringresponse`) → `Fill in the Blanks` (com alternativas aceites e `___` no texto)
+- Os textos dos JSONs passam por uma correção de caracteres tipográficos (`“` `”` `'` `«` `»` → `"`, `…` → `...`, `—` → `-`), tanto nos JSONs descarregados (individuais e no ZIP da SA) como no conteúdo das dinâmicas criadas pela conversão
+
 ## [2.7.1] - 2026-08-26
 
 ### Corrigido

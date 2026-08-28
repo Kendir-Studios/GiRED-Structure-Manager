@@ -511,6 +511,8 @@ html.gired-structure-mapper-disabled .gired-quick-fav-star,
 html.gired-structure-mapper-loading .gired-json-download,
 html.gired-structure-mapper-disabled .gired-json-download,
 html.gired-structure-mapper-loading .gired-sa-export,
-html.gired-structure-mapper-disabled .gired-sa-export {
+html.gired-structure-mapper-disabled .gired-sa-export,
+html.gired-structure-mapper-loading .gired-problem-convert,
+html.gired-structure-mapper-disabled .gired-problem-convert {
     display: none !important;
 }
