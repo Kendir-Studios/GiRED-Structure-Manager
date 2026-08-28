@@ -30,6 +30,24 @@
             .replace(/&#x27;/g, "'");
     }
 
+    /** Troca caracteres tipográficos por equivalentes simples: “ ” ' « » -> ", … -> ..., — -> -. */
+    function correctChars(str) {
+        const chars = { "'": "\"", "“": "\"", "”": "\"", "…": "...", "»": "\"", "«": "\"", "—": "-" };
+        return str.replace(/[“”—…'«»]/g, (m) => chars[m]);
+    }
+
+    /** Aplica correctChars a todos os valores de texto de um JSON já analisado. */
+    function correctCharsDeep(value) {
+        if (typeof value === "string") return correctChars(value);
+        if (Array.isArray(value)) return value.map(correctCharsDeep);
+        if (value && typeof value === "object") {
+            const result = {};
+            for (const [key, item] of Object.entries(value)) result[key] = correctCharsDeep(item);
+            return result;
+        }
+        return value;
+    }
+
     /** Número do recurso no cabeçalho do CMS (ex.: RED_MAT07_ST2). */
     function getCourseNumber() {
         return compact(document.querySelector(".info-course .course-number")?.textContent);
@@ -303,7 +321,7 @@
 
         let text = decodeContent(container.dataset.content || "");
         try {
-            text = JSON.stringify(JSON.parse(text), null, 2);
+            text = JSON.stringify(correctCharsDeep(JSON.parse(text)), null, 2);
         } catch (_) {
             // JSON inválido: descarrega na mesma o conteúdo em bruto.
         }
@@ -333,7 +351,7 @@
             .map(element => {
                 let text = decodeContent(element.getAttribute("data-content") || "");
                 try {
-                    text = JSON.stringify(JSON.parse(text), null, 2);
+                    text = JSON.stringify(correctCharsDeep(JSON.parse(text)), null, 2);
                 } catch (_) {
                     // JSON inválido: entra no ZIP em bruto na mesma.
                 }
