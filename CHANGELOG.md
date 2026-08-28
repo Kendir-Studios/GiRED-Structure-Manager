@@ -4,6 +4,8 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [2.8.0] - 2026-08-28
+
 ### Adicionado
 
 - Novo item `Converter em dinâmica` no menu de ações (⋯) dos problemas CAPA do CMS (novo `cms-problem-convert.js`): lê o XML do problema pela API do Studio, cria a dinâmica SAGE equivalente com o mesmo conteúdo (enunciado, opções, respostas certas e feedbacks) e coloca-a imediatamente abaixo do problema original, que fica intacto
