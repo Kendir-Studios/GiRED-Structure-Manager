@@ -195,7 +195,31 @@ jobs:
           ZIP="$(ls dist/*.zip | head -n 1)"
           echo "A publicar $ZIP (v$VERSION) no item $CWS_EXTENSION_ID"
 
-          TOKEN="$(curl -sS --fail-with-body --max-time 60 -X POST https://oauth2.googleapis.com/token             -d client_id="$CWS_CLIENT_ID"             -d client_secret="$CWS_CLIENT_SECRET"             -d refresh_token="$CWS_REFRESH_TOKEN"             -d grant_type=refresh_token | python3 -c 'import json,sys; print(json.load(sys.stdin)["access_token"])')"
+          # Sem --fail-with-body: quando a Google recusa o pedido queremos a razão (invalid_grant, ...) e não só o 400.
+          TOKEN_RESPONSE="$(curl -sS --max-time 60 -X POST https://oauth2.googleapis.com/token \
+            -d client_id="$CWS_CLIENT_ID" \
+            -d client_secret="$CWS_CLIENT_SECRET" \
+            -d refresh_token="$CWS_REFRESH_TOKEN" \
+            -d grant_type=refresh_token)"
+          TOKEN="$(python3 -c '
+          import json, sys
+          try:
+              print(json.loads(sys.argv[1]).get("access_token", ""))
+          except Exception:
+              print("")
+          ' "$TOKEN_RESPONSE")"
+          if [ -z "$TOKEN" ]; then
+            DETAIL="$(python3 -c '
+          import json, sys
+          try:
+              data = json.loads(sys.argv[1])
+              print(str(data.get("error", "?")) + ": " + str(data.get("error_description", "")))
+          except Exception:
+              print(sys.argv[1][:300])
+          ' "$TOKEN_RESPONSE")"
+            echo "::error::A Google recusou o refresh token ($DETAIL). Se for invalid_grant, gera um novo CWS_REFRESH_TOKEN com scripts/Get-CwsRefreshToken.ps1 e atualiza o segredo no environment chrome-web-store (ver PUBLISHING.md, Problemas comuns)."
+            exit 1
+          fi
 
           UPLOAD="$(curl -sS --fail-with-body --max-time 120 -X PUT             -H "Authorization: Bearer $TOKEN"             -H "x-goog-api-version: 2"             -T "$ZIP"             "https://www.googleapis.com/upload/chromewebstore/v1.1/items/$CWS_EXTENSION_ID")"
           echo "Upload: $UPLOAD"
