@@ -4,6 +4,8 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [3.0.0] - 2026-10-19
+
 ### Adicionado
 
 - Suporte à nova unit page do micro-frontend de autoria (`/authoring/course/<curso>/container/<unidade>`): códigos SA/AT nas migalhas, no título e nos separadores das unidades; botão `Descarregar JSONs da SA` no painel lateral (a exportação corre dentro do iframe do Studio e o ZIP é descarregado pela página); painel de favoritos e estrelas no modal `Avançado`
