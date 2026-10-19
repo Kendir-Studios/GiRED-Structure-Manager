@@ -4,6 +4,8 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+## [2.8.1] - 2026-10-19
+
 ### Adicionado
 
 - Suporte ao ambiente UAT do GiRED (`gired-uat-apps.gired.pt` e `gired-uat-cms.gired.pt`), mantendo `apps.gired.pt` e `cms.gired.pt`; a deteção do editor Studio passa a aceitar qualquer hostname `cms.gired.pt` ou `*-cms.gired.pt`
