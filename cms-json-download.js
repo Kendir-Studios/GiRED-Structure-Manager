@@ -11,7 +11,15 @@
     const WRAPPER_SELECTOR = "li.studio-xblock-wrapper";
     const SAGE_CONTENT_SELECTOR = ".sage-react-xblock[data-content]";
 
+    // Unit page do micro-frontend: o botão da SA vive na página e a exportação corre no iframe do Studio.
+    const VERTICAL_LOCATOR_PATTERN = /block-v1:[^/?#&\s"']*\+type@vertical\+block@[^/?#&\s"']+/;
+    const MFE_UNIT_PATH_PATTERN = /\/authoring\/course\/[^/]+\/container\/([^/]+)/;
+    const UNIT_IFRAME_SELECTOR = "iframe.course-unit__xblock-iframe";
+    const MESSAGE_SOURCE = "gired-fixer";
+    const EXPORT_TIMEOUT_MS = 15 * 60 * 1000;
+
     let scheduled = false;
+    let exportBusy = false;
 
     /** Normaliza texto para segmentos de nome de ficheiro (ex.: "SA 01" -> "SA01"). */
     function compact(value) {
@@ -51,29 +59,47 @@
         return value;
     }
 
-    /** Número do recurso no cabeçalho do CMS (ex.: RED_MAT07_ST2). */
+    /** Número do recurso: cabeçalho do Studio antigo (ex.: RED_MAT07_ST2) ou a chave do curso. */
     function getCourseNumber() {
-        return compact(document.querySelector(".info-course .course-number")?.textContent);
+        const fromHeader = compact(document.querySelector(".info-course .course-number")?.textContent);
+        if (fromHeader) return fromHeader;
+        // `course-v1:EA+RED_PORT04_ST01+2026_v1` -> RED_PORT04_ST01
+        const courseKey = document.querySelector("[data-course-key]")?.getAttribute("data-course-key") || "";
+        return compact(courseKey.match(/^course-v1:[^+]+\+([^+]+)\+/)?.[1]);
     }
 
-    /** Códigos SA/AT: primeiro pelos badges já injetados, depois pelo contexto guardado. */
-    async function getContextCodes() {
+    /** Locator da unidade (vertical) presente num URL, se existir. */
+    function verticalLocatorOf(value) {
+        let decoded = value || "";
+        try { decoded = decodeURIComponent(decoded); } catch (_) {}
+        return decoded.match(VERTICAL_LOCATOR_PATTERN)?.[0] || "";
+    }
+
+    /** Chave de rota usada pelo Structure Mapper: o locator da unidade quando existe, senão o URL. */
+    function routeKey(href) {
+        const vertical = verticalLocatorOf(href);
+        if (vertical) return `vertical:${vertical}`;
+        const url = new URL(href);
+        url.hash = "";
+        return `${url.origin}${url.pathname.replace(/\/+$/, "")}${url.search}`;
+    }
+
+    /** Códigos SA/AT: badges já injetados, depois a rota guardada, depois as pistas da página e o último contexto. */
+    async function getContextCodes(hints = {}) {
         const sa = compact(document.querySelector(".gired-structure-mapper-cms-sa")?.textContent);
         const at = compact(document.querySelector(".gired-structure-mapper-cms-at")?.textContent);
         if (sa && at) return { sa, at };
 
         try {
             const result = await chrome.storage.local.get([CONTEXT_KEY, ROUTE_MAP_KEY]);
-            const url = new URL(location.href);
-            url.hash = "";
-            const route = `${url.origin}${url.pathname}${url.search}`;
-            const context = result[ROUTE_MAP_KEY]?.[route] || result[CONTEXT_KEY] || null;
+            const routed = result[ROUTE_MAP_KEY]?.[routeKey(location.href)] || null;
+            const fallback = result[CONTEXT_KEY] || null;
             return {
-                sa: sa || compact(context?.saCode),
-                at: at || compact(context?.atCode)
+                sa: sa || compact(routed?.saCode) || compact(hints.sa) || compact(fallback?.saCode),
+                at: at || compact(routed?.atCode) || compact(fallback?.atCode)
             };
         } catch (_) {
-            return { sa, at };
+            return { sa: sa || compact(hints.sa), at };
         }
     }
 
@@ -437,19 +463,23 @@
         const url = new URL(href, location.href).href;
         let fetchError = null;
 
-        try {
-            const response = await fetch(url, {
-                credentials: "include",
-                headers: {
-                    "Accept": "text/html,application/xhtml+xml"
-                }
-            });
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            const doc = new DOMParser().parseFromString(await response.text(), "text/html");
-            const dynamics = extractDynamics(doc, url);
-            if (dynamics.length) return dynamics;
-        } catch (error) {
-            fetchError = error;
+        // O `container_embed` da unit page só traz a casca; os componentes chegam por JavaScript,
+        // por isso nesse caso vai-se diretamente para a navegação num iframe escondido.
+        if (!url.includes("/container_embed/")) {
+            try {
+                const response = await fetch(url, {
+                    credentials: "include",
+                    headers: {
+                        "Accept": "text/html,application/xhtml+xml"
+                    }
+                });
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                const doc = new DOMParser().parseFromString(await response.text(), "text/html");
+                const dynamics = extractDynamics(doc, url);
+                if (dynamics.length) return dynamics;
+            } catch (error) {
+                fetchError = error;
+            }
         }
 
         try {
@@ -460,7 +490,57 @@
         }
     }
 
-    /** Exporta um ZIP com os JSONs de todas as dinâmicas da SA atual. */
+    /**
+     * Reúne as dinâmicas das unidades indicadas num ZIP. Devolve null quando não há nada a exportar;
+     * `setLabel` recebe o progresso para o botão (ou para a página, no caso da unit page).
+     */
+    async function buildSaExport(tabs, setLabel, hints = {}) {
+        const { sa } = await getContextCodes(hints);
+        const prefix = [getCourseNumber() || compact(hints.courseNumber), sa].filter(Boolean);
+
+        const entries = [];
+        const problems = [];
+        const mediaState = { byUrl: new Map(), usedNames: new Set() };
+
+        for (let i = 0; i < tabs.length; i++) {
+            const tab = tabs[i];
+            setLabel(`A exportar ${i + 1}/${tabs.length}…`);
+            try {
+                const dynamics = await fetchUnitDynamics(tab.href, tab.active);
+                for (let index = 0; index < dynamics.length; index++) {
+                    const jsonStem = `${[...prefix, tab.code].join("_")}_${dynamicCode(index + 1)}`;
+                    const text = await packageDynamicJson(
+                        dynamics[index], jsonStem, entries, mediaState, problems
+                    );
+                    entries.push({ name: `${jsonStem}.json`, text });
+                }
+            } catch (error) {
+                problems.push(`${tab.code} (${tab.title}): ${error.message}`);
+            }
+        }
+
+        if (!entries.length && !problems.length) return null;
+
+        if (problems.length) {
+            entries.push({
+                name: `${prefix.join("_") || "SA"}_AVISOS.txt`,
+                text: `Avisos durante a exportação:\n${problems.join("\n")}\n`
+            });
+        }
+
+        return {
+            filename: `${prefix.join("_") || "SA"}.zip`,
+            blob: buildZip(entries),
+            problems: problems.length
+        };
+    }
+
+    /** Rótulo final de uma exportação concluída. */
+    function doneLabel(result) {
+        return result.problems ? `Concluído (${result.problems} avisos)` : "Concluído";
+    }
+
+    /** Studio antigo: exporta um ZIP com os JSONs de todas as dinâmicas da SA atual. */
     async function exportSaZip(button) {
         if (button.dataset.busy) return;
         button.dataset.busy = "true";
@@ -469,45 +549,13 @@
         const originalLabel = label.textContent;
 
         try {
-            const tabs = getUnitTabs();
-            const { sa } = await getContextCodes();
-            const prefix = [getCourseNumber(), sa].filter(Boolean);
-
-            const entries = [];
-            const problems = [];
-            const mediaState = { byUrl: new Map(), usedNames: new Set() };
-
-            for (let i = 0; i < tabs.length; i++) {
-                const tab = tabs[i];
-                label.textContent = `A exportar ${i + 1}/${tabs.length}…`;
-                try {
-                    const dynamics = await fetchUnitDynamics(tab.href, tab.active);
-                    for (let index = 0; index < dynamics.length; index++) {
-                        const jsonStem = `${[...prefix, tab.code].join("_")}_${dynamicCode(index + 1)}`;
-                        const text = await packageDynamicJson(
-                            dynamics[index], jsonStem, entries, mediaState, problems
-                        );
-                        entries.push({ name: `${jsonStem}.json`, text });
-                    }
-                } catch (error) {
-                    problems.push(`${tab.code} (${tab.title}): ${error.message}`);
-                }
-            }
-
-            if (!entries.length && !problems.length) {
+            const result = await buildSaExport(getUnitTabs(), text => { label.textContent = text; });
+            if (!result) {
                 label.textContent = "Sem dinâmicas nesta SA";
                 return;
             }
-
-            if (problems.length) {
-                entries.push({
-                    name: `${prefix.join("_") || "SA"}_AVISOS.txt`,
-                    text: `Avisos durante a exportação:\n${problems.join("\n")}\n`
-                });
-            }
-
-            downloadBlob(`${prefix.join("_") || "SA"}.zip`, buildZip(entries));
-            label.textContent = problems.length ? `Concluído (${problems.length} avisos)` : "Concluído";
+            downloadBlob(result.filename, result.blob);
+            label.textContent = doneLabel(result);
         } catch (_) {
             label.textContent = "Falhou; tenta novamente";
         } finally {
@@ -519,10 +567,173 @@
         }
     }
 
+    // ---------- Unit page do micro-frontend: lado do iframe (Studio incorporado) ----------
+
+    /** Locator da unidade aberta neste documento (URL do embed ou wrapper de nível de página). */
+    function getPageVerticalLocator() {
+        return verticalLocatorOf(location.href)
+            || verticalLocatorOf(document.querySelector(".wrapper-xblock.level-page[data-locator]")?.getAttribute("data-locator"));
+    }
+
+    /**
+     * A página pede a exportação com a lista de unidades da SA (que só ela conhece) e recebe o ZIP
+     * de volta: um iframe de outra origem, sem gesto do utilizador, pode ver o descarregamento bloqueado.
+     */
+    function handleExportRequest(event) {
+        if (event.source !== window.parent) return;
+        const data = event.data;
+        if (!data || data.source !== MESSAGE_SOURCE || data.type !== "export-sa") return;
+
+        const reply = (message, transfer) => {
+            try { event.source.postMessage({ source: MESSAGE_SOURCE, ...message }, event.origin, transfer); } catch (_) {}
+        };
+
+        if (exportBusy) {
+            reply({ type: "export-sa-done", label: "Já há uma exportação em curso" });
+            return;
+        }
+        const units = (Array.isArray(data.units) ? data.units : [])
+            .map(unit => ({ locator: verticalLocatorOf(unit?.locator), title: String(unit?.title || "").trim() }))
+            .filter(unit => unit.locator);
+        if (!units.length) {
+            reply({ type: "export-sa-done", label: "Sem unidades para exportar" });
+            return;
+        }
+
+        const current = getPageVerticalLocator();
+        const tabs = units.map((unit, index) => ({
+            href: `${location.origin}/container_embed/${unit.locator}`,
+            title: unit.title,
+            code: index === 0 ? "INTROD" : `AT${String(index).padStart(2, "0")}`,
+            active: unit.locator === current
+        }));
+
+        exportBusy = true;
+        buildSaExport(tabs, label => reply({ type: "export-sa-progress", label }), { sa: data.sa, courseNumber: data.courseNumber })
+            .then(async result => {
+                if (!result) {
+                    reply({ type: "export-sa-done", label: "Sem dinâmicas nesta SA" });
+                    return;
+                }
+                const bytes = await result.blob.arrayBuffer();
+                reply({ type: "export-sa-done", label: doneLabel(result), filename: result.filename, bytes }, [bytes]);
+            })
+            .catch(() => reply({ type: "export-sa-done", label: "Falhou; tenta novamente" }))
+            .finally(() => { exportBusy = false; });
+    }
+
+    // ---------- Unit page do micro-frontend: lado da página ----------
+
+    /** Indica se esta é a unit page do micro-frontend (frame principal). */
+    function isMfeUnitPage() {
+        return window === window.top && MFE_UNIT_PATH_PATTERN.test(location.pathname);
+    }
+
+    /** Número do recurso no cabeçalho do micro-frontend ("EA RED_PORT04_ST01" -> RED_PORT04_ST01). */
+    function getMfeCourseNumber() {
+        const text = (document.querySelector('[data-testid="course-org-number"]')?.textContent || "").trim();
+        return compact(text.split(/\s+/).pop());
+    }
+
+    /** Unidades da SA atual, pela ordem dos separadores da barra de sequência da unit page. */
+    function getMfeUnits() {
+        return Array.from(document.querySelectorAll('.sequence-navigation a[data-testid="course-unit-btn"]'))
+            .map(tab => ({ locator: verticalLocatorOf(tab.getAttribute("href")), title: tab.getAttribute("title") || "" }))
+            .filter(unit => unit.locator);
+    }
+
+    let pendingExport = null;
+
+    /** Termina a exportação em curso na página, repondo o botão passado um momento. */
+    function finishMfeExport(label) {
+        if (!pendingExport) return;
+        const { button, labelElement, originalLabel, timeout } = pendingExport;
+        window.clearTimeout(timeout);
+        pendingExport = null;
+        labelElement.textContent = label;
+        window.setTimeout(() => {
+            labelElement.textContent = originalLabel;
+            button.disabled = false;
+        }, 2500);
+    }
+
+    /** Pede ao iframe do Studio a exportação da SA; o ZIP volta por mensagem e é descarregado aqui. */
+    function startMfeExport(button) {
+        if (pendingExport) return;
+        const frame = document.querySelector(UNIT_IFRAME_SELECTOR);
+        const units = getMfeUnits();
+        const labelElement = button.querySelector(".button-label");
+        const originalLabel = labelElement.textContent;
+
+        let targetOrigin = "";
+        try { targetOrigin = new URL(frame?.getAttribute("src") || "", location.href).origin; } catch (_) {}
+        if (!frame?.contentWindow || !targetOrigin || !units.length) {
+            labelElement.textContent = "Sem unidades para exportar";
+            window.setTimeout(() => { labelElement.textContent = originalLabel; }, 2500);
+            return;
+        }
+
+        button.disabled = true;
+        labelElement.textContent = "A preparar…";
+        pendingExport = {
+            button,
+            labelElement,
+            originalLabel,
+            frame,
+            timeout: window.setTimeout(() => finishMfeExport("Falhou; tenta novamente"), EXPORT_TIMEOUT_MS)
+        };
+        frame.contentWindow.postMessage({
+            source: MESSAGE_SOURCE,
+            type: "export-sa",
+            units,
+            sa: compact(document.querySelector(".gired-structure-mapper-cms-sa")?.textContent),
+            courseNumber: getMfeCourseNumber()
+        }, targetOrigin);
+    }
+
+    /** Progresso e resultado enviados pelo iframe durante uma exportação pedida pela página. */
+    function handleExportReply(event) {
+        if (!pendingExport || event.source !== pendingExport.frame.contentWindow) return;
+        const data = event.data;
+        if (!data || data.source !== MESSAGE_SOURCE) return;
+        if (data.type === "export-sa-progress") {
+            pendingExport.labelElement.textContent = String(data.label || "");
+            return;
+        }
+        if (data.type !== "export-sa-done") return;
+        if (data.bytes instanceof ArrayBuffer && data.filename) {
+            downloadBlob(String(data.filename), new Blob([data.bytes], { type: "application/zip" }));
+        }
+        finishMfeExport(String(data.label || "Concluído"));
+    }
+
+    /** Botão "Descarregar JSONs da SA" no painel lateral da unit page, a seguir a "Copiar unidade". */
+    function ensureMfeSaButton() {
+        if (!isMfeUnitPage()) return;
+        const footer = document.querySelector('[data-testid="course-unit-sidebar"] .course-unit-sidebar-footer .course-unit-sidebar-visibility');
+        if (!footer || footer.querySelector(`.${SA_BUTTON_CLASS}`)) return;
+
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = `btn btn-outline-primary btn-sm ${SA_BUTTON_CLASS}`;
+        button.title = "Exporta um ZIP com os JSONs de todas as dinâmicas desta SA";
+
+        const label = document.createElement("span");
+        label.className = "button-label";
+        label.textContent = "Descarregar JSONs da SA";
+
+        button.appendChild(label);
+        button.addEventListener("click", () => startMfeExport(button));
+        footer.appendChild(button);
+    }
+
     /** Acrescenta "Descarregar JSON" ao menu de ações de cada dinâmica SAGE. */
     function ensureMenuItems() {
         scheduled = false;
-        if (!CMS_HOST_PATTERN.test(location.hostname)) return;
+        if (!CMS_HOST_PATTERN.test(location.hostname)) {
+            ensureMfeSaButton();
+            return;
+        }
 
         document.querySelectorAll(WRAPPER_SELECTOR).forEach(wrapper => {
             if (!wrapper.querySelector(SAGE_CONTENT_SELECTOR)) return;
@@ -612,6 +823,11 @@
     function initialize() {
         ensureMenuItems();
         startObserver();
+        if (window !== window.top && CMS_HOST_PATTERN.test(location.hostname)) {
+            window.addEventListener("message", handleExportRequest);
+        } else if (window === window.top) {
+            window.addEventListener("message", handleExportReply);
+        }
     }
 
     if (document.readyState === "loading") {

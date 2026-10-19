@@ -516,3 +516,74 @@ html.gired-structure-mapper-loading .gired-problem-convert,
 html.gired-structure-mapper-disabled .gired-problem-convert {
     display: none !important;
 }
+
+/* ---------- Unit page do micro-frontend de autoria (apps.gired.pt/authoring/.../container/...) ---------- */
+
+/* Códigos SA/AT nas migalhas e no título da unidade. */
+.course-unit #breadcrumbs-dropdown-subsection .gired-structure-mapper-cms-sa {
+    margin-left: 6px;
+}
+
+.course-unit [data-testid="unit-header-title"] .gired-structure-mapper-cms-at {
+    font-size: 12px;
+}
+
+/* Separadores das unidades (só ícone): o código fica à esquerda do ícone. */
+.sequence-navigation .gired-structure-mapper-menu-badge {
+    min-width: 0;
+    margin-right: 6px;
+}
+
+.sequence-navigation .btn-primary .gired-structure-mapper-menu-badge {
+    border-color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+/* No Studio incorporado no iframe, o nome da unidade só tem os códigos à frente. */
+.xblock-header-vertical .gired-structure-mapper-cms-sa {
+    margin-left: 0;
+    margin-right: 8px;
+}
+
+/* Botão de exportação da SA no painel lateral da unit page. */
+.course-unit-sidebar .gired-sa-export {
+    display: block;
+    width: 100%;
+    margin-top: 8px;
+}
+
+/* Painel de favoritos acima da lista "Adicionar um novo componente". */
+.course-unit .gired-quick-favorites.is-mfe {
+    max-width: 48rem;
+    margin: 0 auto 20px;
+}
+
+/* Estrela nos itens do modal "Avançado": fica em linha, sem o posicionamento absoluto do Studio antigo. */
+.gired-quick-fav-star.is-mfe {
+    position: static;
+    flex: 0 0 auto;
+    margin-left: 8px;
+    transform: none;
+}
+
+.gired-quick-fav-star.is-mfe:hover {
+    transform: scale(1.15);
+}
+
+/* Enquanto um modal antigo do Studio está aberto dentro do iframe da unidade, o iframe ocupa o ecrã
+   inteiro (o pedido vem do próprio iframe, através do unit-iframe-bridge.js). */
+html.gired-unit-modal-open {
+    overflow: hidden !important;
+}
+
+iframe.course-unit__xblock-iframe.gired-unit-iframe-modal-open {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-height: none !important;
+    margin: 0 !important;
+    z-index: 1090 !important;
+}

@@ -4,6 +4,18 @@ Todas as alterações relevantes do GiRED Structure Manager são registadas nest
 
 ## [Por lançar]
 
+### Adicionado
+
+- Suporte à nova unit page do micro-frontend de autoria (`/authoring/course/<curso>/container/<unidade>`): códigos SA/AT nas migalhas, no título e nos separadores das unidades; botão `Descarregar JSONs da SA` no painel lateral (a exportação corre dentro do iframe do Studio e o ZIP é descarregado pela página); painel de favoritos e estrelas no modal `Avançado`
+- Os content scripts passam a correr também nos iframes (`all_frames`), para o Studio incorporado na unit page (`container_embed`) manter `Descarregar JSON`, `Converter em dinâmica`, o editor JSON do `Code view` e os códigos SA/AT no cabeçalho da unidade
+- Novo `unit-iframe-bridge.js`: enquanto um modal antigo do Studio está aberto dentro do iframe, a página põe o iframe em ecrã inteiro, para o modal `Editando: ...` continuar a ocupar quase todo o ecrã
+- Quando a página de estrutura ainda não foi visitada, o contexto SA/AT é derivado da API do Studio (`GET /xblock/container/<unidade>`), que também fornece os nomes das dinâmicas ao painel de favoritos
+
+### Alterado
+
+- O mapa de rotas passa a identificar as unidades pelo locator (`block-v1:...+type@vertical+block@...`) em vez do URL, por isso a mesma unidade é reconhecida no Studio antigo, na unit page e no iframe; o número do recurso nos nomes dos ficheiros passa a ser lido também do `data-course-key`
+- Os scripts dos painéis de Revisão e de Controlo de Versões ficam limitados à página principal
+
 ## [2.8.1] - 2026-10-19
 
 ### Adicionado

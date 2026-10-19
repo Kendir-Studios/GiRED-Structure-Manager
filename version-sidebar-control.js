@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    // Os painéis do GiRED só existem na página principal; nos iframes não há nada a fazer.
+    if (window !== window.top) return;
+
     const LEGACY_VERSION_RIGHT_KEY = "giredVersionSidebarRight";
     const LEGACY_RIGHT_CLASS = "gired-version-sidebar-right";
     const SIDEBAR_SELECTOR = "#course-vc-sidebar";

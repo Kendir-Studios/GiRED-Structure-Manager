@@ -28,6 +28,9 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - No CMS, o modal `Editando: ...` ocupa quase todo o ecrã, com uma margem à volta
 - No CMS, a barra de navegação das unidades (`Anterior`/`Seguinte`) é reposta automaticamente se o Studio não a renderizar
 - No CMS, o `Code view` dos componentes SAGE ganha um editor JSON com realce de sintaxe, numeração de linhas, colapso de regiões `{...}`/`[...]`, validação e formatação
+- Suporta a nova unit page do micro-frontend de autoria (`/authoring/course/.../container/...`): códigos SA/AT nas migalhas, no título e nos separadores das unidades, botão `Descarregar JSONs da SA` no painel lateral e favoritos do menu `Avançado`
+- Os scripts do Studio correm também dentro do iframe dessa página, por isso `Descarregar JSON`, `Converter em dinâmica` e o editor JSON continuam disponíveis; o modal `Editando: ...` ocupa o ecrã inteiro mesmo dentro do iframe
+- Quando a página de estrutura ainda não foi visitada, os códigos SA/AT são obtidos da própria API do Studio
 
 ## Instalação
 

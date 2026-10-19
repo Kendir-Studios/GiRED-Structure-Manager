@@ -78,6 +78,7 @@ jobs:
             popup.css
             popup.js
             toggle-control.js
+            unit-iframe-bridge.js
             review-sidebar-control.js
             version-sidebar-control.js
             version-comments-search.js

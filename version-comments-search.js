@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    // Os painéis do GiRED só existem na página principal; nos iframes não há nada a fazer.
+    if (window !== window.top) return;
+
     const SIDEBAR_SELECTOR = "#course-vc-sidebar";
     const COMMENTS_LIST_SELECTOR = "#vc-comments-list";
     const COMMENT_SELECTOR = ".course-vc-comment-item";

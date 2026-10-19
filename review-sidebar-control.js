@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    // Os painéis do GiRED só existem na página principal; nos iframes não há nada a fazer.
+    if (window !== window.top) return;
+
     const LEGACY_REVIEW_LEFT_KEY = "giredReviewSidebarLeft";
     const REVIEW_COMMENTS_ONLY_KEY = "giredReviewCommentsOnly";
     const REVIEW_OPEN_ONLY_KEY = "giredReviewOpenOnly";

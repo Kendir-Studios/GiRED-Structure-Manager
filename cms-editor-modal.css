@@ -1,5 +1,8 @@
-/* Faz o modal nativo "Editando: ..." do Studio ocupar quase todo o ecrã, com uma margem à volta. */
-html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-window {
+/* Faz o modal nativo "Editando: ..." do Studio ocupar quase todo o ecrã, com uma margem à volta.
+   Dentro do iframe da unit page só se aplica depois de a página confirmar (unit-iframe-bridge.js)
+   que põe o iframe em ecrã inteiro; caso contrário 100vh seria a altura do iframe, não a do ecrã. */
+html:not(.gired-structure-mapper-disabled):not(.gired-embedded) .wrapper-modal-window-edit-xblock .modal-window,
+html:not(.gired-structure-mapper-disabled).gired-embed-managed .wrapper-modal-window-edit-xblock .modal-window {
     --gired-modal-gap: 24px;
     position: fixed !important;
     top: var(--gired-modal-gap) !important;
@@ -19,7 +22,8 @@ html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .mo
 }
 
 @media (max-width: 900px) {
-    html:not(.gired-structure-mapper-disabled) .wrapper-modal-window-edit-xblock .modal-window {
+    html:not(.gired-structure-mapper-disabled):not(.gired-embedded) .wrapper-modal-window-edit-xblock .modal-window,
+    html:not(.gired-structure-mapper-disabled).gired-embed-managed .wrapper-modal-window-edit-xblock .modal-window {
         --gired-modal-gap: 10px;
     }
 }

@@ -36,6 +36,7 @@
       ],
       "js": [
         "toggle-control.js",
+        "unit-iframe-bridge.js",
         "review-sidebar-control.js",
         "version-sidebar-control.js",
         "version-comments-search.js",
@@ -55,7 +56,8 @@
         "context-hide.css",
         "cms-editor-modal.css"
       ],
-      "run_at": "document_idle"
+      "run_at": "document_idle",
+      "all_frames": true
     },
     {
       "matches": [
