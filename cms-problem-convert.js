@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    /** Hostnames do Studio (CMS) do GiRED: cms.gired.pt e variantes como gired-uat-cms.gired.pt. */
+    const CMS_HOST_PATTERN = /(^|[.-])cms[.]gired[.]pt$/;
+
     const ITEM_CLASS = "gired-problem-convert";
     const WRAPPER_SELECTOR = "li.studio-xblock-wrapper";
 
@@ -277,7 +280,7 @@
     /** Acrescenta "Converter em dinâmica" ao menu de ações dos problemas CAPA. */
     function ensureMenuItems() {
         scheduled = false;
-        if (location.hostname !== "cms.gired.pt") return;
+        if (!CMS_HOST_PATTERN.test(location.hostname)) return;
 
         document.querySelectorAll(WRAPPER_SELECTOR).forEach(wrapper => {
             if (!wrapper.querySelector(".problems-wrapper")) return;

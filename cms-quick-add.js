@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    /** Hostnames do Studio (CMS) do GiRED: cms.gired.pt e variantes como gired-uat-cms.gired.pt. */
+    const CMS_HOST_PATTERN = /(^|[.-])cms[.]gired[.]pt$/;
+
     const FAVORITES_KEY = "giredQuickAddFavoritesV1";
     const DEFAULT_FAVORITES = ["sage_singlechoiceunified", "sage_multipleselectionunified"];
     const PANEL_CLASS = "gired-quick-favorites";
@@ -166,7 +169,7 @@
     /** Garante estrelas e painel em todos os menus de componentes da página. */
     function ensureQuickFavorites() {
         scheduled = false;
-        if (location.hostname !== "cms.gired.pt" || !favorites) return;
+        if (!CMS_HOST_PATTERN.test(location.hostname) || !favorites) return;
 
         document.querySelectorAll(`.add-xblock-component:not(.${PANEL_CLASS})`).forEach(container => {
             if (!container.querySelector(TEMPLATE_BUTTON_SELECTOR)) return;

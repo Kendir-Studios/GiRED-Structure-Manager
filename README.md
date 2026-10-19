@@ -10,7 +10,7 @@ Extensão interna para Chrome/Edge que adiciona automaticamente códigos de estr
 - A numeração das ATs reinicia em cada SA
 - Mostra os códigos também nos dropdowns/menus de navegação
 - Mantém o contexto ao entrar numa unidade
-- Suporta `apps.gired.pt` e `cms.gired.pt`
+- Suporta `apps.gired.pt` e `cms.gired.pt`, bem como o ambiente UAT (`gired-uat-apps.gired.pt` e `gired-uat-cms.gired.pt`)
 - Pode ser ligada/desligada diretamente no popup
 - Mantém o painel nativo de Revisão no lado direito do GiRED
 - Faz a página adaptar-se automaticamente à largura do painel de Revisão, evitando que este tape o conteúdo

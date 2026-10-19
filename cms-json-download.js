@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    /** Hostnames do Studio (CMS) do GiRED: cms.gired.pt e variantes como gired-uat-cms.gired.pt. */
+    const CMS_HOST_PATTERN = /(^|[.-])cms[.]gired[.]pt$/;
+
     const ITEM_CLASS = "gired-json-download";
     const SA_BUTTON_CLASS = "gired-sa-export";
     const CONTEXT_KEY = "giredStructureMapperContextV2";
@@ -519,7 +522,7 @@
     /** Acrescenta "Descarregar JSON" ao menu de ações de cada dinâmica SAGE. */
     function ensureMenuItems() {
         scheduled = false;
-        if (location.hostname !== "cms.gired.pt") return;
+        if (!CMS_HOST_PATTERN.test(location.hostname)) return;
 
         document.querySelectorAll(WRAPPER_SELECTOR).forEach(wrapper => {
             if (!wrapper.querySelector(SAGE_CONTENT_SELECTOR)) return;

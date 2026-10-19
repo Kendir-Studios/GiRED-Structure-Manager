@@ -30,7 +30,9 @@
     {
       "matches": [
         "https://apps.gired.pt/*",
-        "https://cms.gired.pt/*"
+        "https://cms.gired.pt/*",
+        "https://gired-uat-apps.gired.pt/*",
+        "https://gired-uat-cms.gired.pt/*"
       ],
       "js": [
         "toggle-control.js",
@@ -58,7 +60,9 @@
     {
       "matches": [
         "https://apps.gired.pt/*",
-        "https://cms.gired.pt/*"
+        "https://cms.gired.pt/*",
+        "https://gired-uat-apps.gired.pt/*",
+        "https://gired-uat-cms.gired.pt/*"
       ],
       "js": [
         "version-comments-export.js",

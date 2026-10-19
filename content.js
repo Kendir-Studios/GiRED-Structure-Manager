@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    /** Hostnames do Studio (CMS) do GiRED: cms.gired.pt e variantes como gired-uat-cms.gired.pt. */
+    const CMS_HOST_PATTERN = /(^|[.-])cms[.]gired[.]pt$/;
+
     const SA_BADGE_CLASS = "gired-structure-mapper-sa";
     const AT_BADGE_CLASS = "gired-structure-mapper-at";
     const MENU_BADGE_CLASS = "gired-structure-mapper-menu-badge";
@@ -137,7 +140,7 @@
 
     /** Numera sequencialmente todos os itens dos dropdowns do CMS. */
     function updateCmsDropdowns(context) {
-        if (location.hostname !== "cms.gired.pt") return;
+        if (!CMS_HOST_PATTERN.test(location.hostname)) return;
         const menus = Array.from(document.querySelectorAll('.dropdown-menu, [role="menu"], [role="listbox"]')).filter(isElementVisible);
 
         menus.forEach(menu => {
@@ -336,7 +339,7 @@
 
     /** Integra SA e AT diretamente no cabeçalho do editor CMS. */
     async function updateCmsHeader() {
-        if (location.hostname !== "cms.gired.pt") return null;
+        if (!CMS_HOST_PATTERN.test(location.hostname)) return null;
         const context = await getCurrentContext();
         if (!context) return null;
         const saTarget = findVisibleTextElement(context.saName, ["main a", "main button", "main span", ".container a", ".container button", "body a", "body button", "body span"]);
@@ -349,7 +352,7 @@
     /** Mostra o indicador flutuante apenas fora do editor CMS. */
     async function updateContextIndicator() {
         let indicator = document.querySelector(`.${CONTEXT_CLASS}`);
-        if (location.hostname === "cms.gired.pt") { indicator?.remove(); return; }
+        if (CMS_HOST_PATTERN.test(location.hostname)) { indicator?.remove(); return; }
         const context = await getCurrentContext();
         if (!context || isStructurePageVisible()) { indicator?.remove(); return; }
         if (!indicator) {

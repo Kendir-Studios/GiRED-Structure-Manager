@@ -1,6 +1,9 @@
 (() => {
     "use strict";
 
+    /** Hostnames do Studio (CMS) do GiRED: cms.gired.pt e variantes como gired-uat-cms.gired.pt. */
+    const CMS_HOST_PATTERN = /(^|[.-])cms[.]gired[.]pt$/;
+
     const BADGE_CLASS = "gired-structure-mapper-menu-badge";
     const STORAGE_KEY = "giredStructureMapperContextV2";
     let scheduled = false;
@@ -89,7 +92,7 @@
 
     /** Numera todos os nav-sub existentes no CMS. */
     async function updateDropdowns() {
-        if (location.hostname !== "cms.gired.pt") return;
+        if (!CMS_HOST_PATTERN.test(location.hostname)) return;
         if (!document.querySelector("div.nav-sub")) return;
 
         const context = await getContext();
